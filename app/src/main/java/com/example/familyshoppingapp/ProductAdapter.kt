@@ -1,13 +1,17 @@
 package com.example.familyshoppingapp
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentId
 
 class ProductAdapter(
+    private val productsRef: CollectionReference,
     private val shoppingItemList: MutableList<ShoppingItem>,
     private val onDeleteClicked: (String) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
@@ -36,8 +40,14 @@ class ProductAdapter(
         }
 
         holder.buttonAddToCart.setOnClickListener {
+            val currentItem = shoppingItemList[position]
             currentItem.isAdded = !currentItem.isAdded
-            notifyItemChanged(position)
+
+            holder.itemView.alpha = if (currentItem.isAdded) 0.5f else 1.0f
+
+            currentItem.documentId?.let { documentId ->
+                updateItemInDatabase(documentId, currentItem)
+            }
         }
 
         holder.buttonDelete.setOnClickListener {
@@ -57,5 +67,15 @@ class ProductAdapter(
     fun removeItem(position: Int) {
         shoppingItemList.removeAt(position)
         notifyItemRemoved(position)
+    }
+
+    private fun updateItemInDatabase(documentId: String, shoppingItem: ShoppingItem) {
+        productsRef.document(documentId).set(shoppingItem)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Document successfully updated")
+            }
+            .addOnFailureListener { e ->
+                Log.w("Firestore", "Error updating document", e)
+            }
     }
 }

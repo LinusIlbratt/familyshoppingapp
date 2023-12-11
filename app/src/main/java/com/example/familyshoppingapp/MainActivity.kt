@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        adapter = ProductAdapter(shoppingItemList) { documentId ->
+        adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
             removeItemsFromDatabase(documentId)
         }
 
