@@ -7,7 +7,10 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class ProductAdapter(private val productList: MutableList<Product>, private val onDeleteClicked: (Int) -> Unit) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+class ProductAdapter(
+    private val shoppingItemList: MutableList<ShoppingItem>,
+    private val onDeleteClicked: (String) -> Unit
+) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewProductName: TextView = view.findViewById(R.id.productNameTextView)
@@ -22,7 +25,7 @@ class ProductAdapter(private val productList: MutableList<Product>, private val 
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val currentItem = productList[position]
+        val currentItem = shoppingItemList[position]
         holder.textViewProductName.text = currentItem.name
 
         // Change alpha value if a product is added to the cart
@@ -38,7 +41,9 @@ class ProductAdapter(private val productList: MutableList<Product>, private val 
         }
 
         holder.buttonDelete.setOnClickListener {
-            onDeleteClicked(position)
+            currentItem.documentId?.let { id ->
+                onDeleteClicked(id)
+            }
         }
 
         holder.buttonEdit.setOnClickListener {
@@ -47,10 +52,10 @@ class ProductAdapter(private val productList: MutableList<Product>, private val 
 
     }
 
-    override fun getItemCount() = productList.size
+    override fun getItemCount() = shoppingItemList.size
 
     fun removeItem(position: Int) {
-        productList.removeAt(position)
+        shoppingItemList.removeAt(position)
         notifyItemRemoved(position)
     }
 }
