@@ -6,11 +6,10 @@
     android:layout_height="match_parent">
 
     <EditText
-        android:id="@+id/addItemName"
+        android:id="@+id/editItemName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
-        android:hint="Item name"
         android:fontFamily="@font/poppins_bold_italic"
         android:textSize="18sp"
         android:textColor="@color/black"
