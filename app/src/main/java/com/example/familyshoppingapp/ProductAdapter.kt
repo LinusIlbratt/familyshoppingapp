@@ -1,11 +1,15 @@
 package com.example.familyshoppingapp
 
+import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentId
@@ -21,6 +25,9 @@ class ProductAdapter(
         val buttonAddToCart: Button = view.findViewById(R.id.buttonAddToCart)
         val buttonDelete: Button = view.findViewById(R.id.buttonDelete)
         val buttonEdit: Button = view.findViewById(R.id.buttonEdit)
+        val amountTextView: TextView = view.findViewById(R.id.amountTextView)
+        val buttonAdd: ImageButton = view.findViewById(R.id.buttonAdd)
+        val buttonSubtract: ImageButton = view.findViewById(R.id.buttonSubtract)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -31,6 +38,19 @@ class ProductAdapter(
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val currentItem = shoppingItemList[position]
         holder.textViewProductName.text = currentItem.name
+        holder.amountTextView.text = "x${currentItem.quantity}"
+
+        holder.buttonAdd.setOnClickListener {
+            currentItem.quantity += 1
+            holder.amountTextView.text = "x${currentItem.quantity}"
+        }
+
+        holder.buttonSubtract.setOnClickListener {
+            if (currentItem.quantity > 1) {
+                currentItem.quantity -= 1
+                holder.amountTextView.text = "x${currentItem.quantity}"
+            }
+        }
 
         // Change alpha value if a product is added to the cart
         if (currentItem.isAdded) {
@@ -57,7 +77,9 @@ class ProductAdapter(
         }
 
         holder.buttonEdit.setOnClickListener {
-            //onEditClicked(currentItem)
+            val currentItem = shoppingItemList[position]
+            val context = holder.itemView.context
+            showEditPopUp(context, currentItem, position)
         }
 
     }
@@ -78,4 +100,29 @@ class ProductAdapter(
                 Log.w("Firestore", "Error updating document", e)
             }
     }
+
+    private fun showEditPopUp(context: Context, item: ShoppingItem, position: Int) {
+        val builder = AlertDialog.Builder(context)
+        val inflater = LayoutInflater.from(context)
+        val dialogLayout = inflater.inflate(R.layout.edit_item, null)
+        val editText = dialogLayout.findViewById<EditText>(R.id.editItemName)
+
+        editText.setText(item.name)
+
+        builder.setView(dialogLayout)
+            .setPositiveButton("Save") { dialog, which ->
+                val newName = editText.text.toString()
+                if (newName.isNotEmpty() && newName != item.name) {
+                    item.name = newName // Update name
+                    shoppingItemList[position] = item // Update list
+                    notifyItemChanged(position)
+                    item.documentId?.let { documentId ->
+                        updateItemInDatabase(documentId, item)
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 }

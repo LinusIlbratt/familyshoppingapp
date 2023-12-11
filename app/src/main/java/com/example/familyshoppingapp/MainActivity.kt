@@ -70,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         val inflater = layoutInflater
         val dialogLayout = inflater.inflate(R.layout.add_shopping_item, null)
-        val editItemName = dialogLayout.findViewById<EditText>(R.id.editItemName)
+        val editItemName = dialogLayout.findViewById<EditText>(R.id.addItemName)
 
         builder.setView(dialogLayout)
             .setPositiveButton("Add") { dialog, which ->
