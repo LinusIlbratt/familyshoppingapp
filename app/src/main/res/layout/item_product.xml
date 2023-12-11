@@ -5,16 +5,39 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="10dp">
 
+    <Button
+        android:id="@+id/buttonDelete"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/baseline_delete_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHeight_percent="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.08" />
+
+    <Button
+        android:id="@+id/buttonEdit"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.08"
+        app:layout_constraintHeight_percent="1"
+        android:background="@drawable/baseline_edit_24"
+        app:layout_constraintStart_toEndOf="@id/buttonDelete"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
     <TextView
         android:id="@+id/productNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
         android:text="Produktnamn"
         android:textSize="18sp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonAddToCart"/>
+        app:layout_constraintEnd_toStartOf="@+id/buttonAddToCart"
+        app:layout_constraintStart_toEndOf="@+id/buttonEdit"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/buttonAddToCart"
