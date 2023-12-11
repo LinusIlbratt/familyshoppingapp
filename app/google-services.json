@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1034724928436",
+    "project_id": "familyshoppingapp-a6090",
+    "storage_bucket": "familyshoppingapp-a6090.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034724928436:android:6c71999cbb8707adb420e1",
+        "android_client_info": {
+          "package_name": "com.example.familyshoppingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvf75r9yR73OSVYxTUjyuGs040GZ9EQ4Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
