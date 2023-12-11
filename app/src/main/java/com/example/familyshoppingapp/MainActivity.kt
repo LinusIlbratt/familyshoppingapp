@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,7 +48,8 @@ class MainActivity : AppCompatActivity() {
 
         val floatingButton: FloatingActionButton = findViewById(R.id.addItem)
         floatingButton.setOnClickListener {
-            showButtonDialog()
+            Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
+            addNewItemPopUpWindow()
 
         }
 
@@ -63,7 +65,8 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun showButtonDialog() {
+
+    private fun addNewItemPopUpWindow() {
         val builder = AlertDialog.Builder(this)
         val inflater = layoutInflater
         val dialogLayout = inflater.inflate(R.layout.add_shopping_item, null)
@@ -72,11 +75,14 @@ class MainActivity : AppCompatActivity() {
         builder.setView(dialogLayout)
             .setPositiveButton("Add") { dialog, which ->
                 val itemName = editItemName.text.toString()
+
                 if (itemName.isNotEmpty()) {
                     val newItem = ShoppingItem(name = itemName)
                     addItemsToDatabase(newItem)
                 }
             }
+        builder.show()
+
     }
 
     private fun removeItemsFromDatabase(documentId: String) {
