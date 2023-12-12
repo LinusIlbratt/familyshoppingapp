@@ -22,7 +22,7 @@ class ProductAdapter(
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewProductName: TextView = view.findViewById(R.id.productNameTextView)
-        val buttonAddToCart: Button = view.findViewById(R.id.buttonAddToCart)
+        val buttonAddToCart: ImageButton = view.findViewById(R.id.buttonAddToCart)
         val buttonDelete: Button = view.findViewById(R.id.buttonDelete)
         val buttonEdit: Button = view.findViewById(R.id.buttonEdit)
         val amountTextView: TextView = view.findViewById(R.id.amountTextView)
