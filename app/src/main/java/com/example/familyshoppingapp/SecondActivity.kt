@@ -82,7 +82,6 @@ class SecondActivity : AppCompatActivity() {
                 }
             }
         builder.show()
-
     }
 
     private fun removeItemsFromDatabase(documentId: String) {

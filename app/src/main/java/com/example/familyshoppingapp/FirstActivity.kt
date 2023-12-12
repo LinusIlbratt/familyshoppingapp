@@ -3,6 +3,9 @@ package com.example.familyshoppingapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,9 +13,10 @@ import java.lang.IllegalStateException
 
 class FirstActivity : AppCompatActivity() {
 
-    lateinit var recyclerView: RecyclerView
-    lateinit var adapter: CardListsAdapter
-    lateinit var userId: String
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: CardListsAdapter
+    private lateinit var userId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first)
@@ -25,11 +29,14 @@ class FirstActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewLists)
+
         adapter = CardListsAdapter { shoppingList ->
-            if (shoppingList == null) {
-                // Kod för att skapa en ny lista
+            if (shoppingList == null || shoppingList.isCardEmpty) {
+                // Användaren klickade på 'lägg till ny lista'-kortet
+                popUpForNewCardList()
             } else {
-                // Kod för att öppna en befintlig lista
+                // Hantera öppning av befintlig lista
+                // Exempelvis, öppna en ny aktivitet med detaljer om shoppinglistan
             }
         }
         recyclerView.layoutManager = GridLayoutManager(this, 2)
@@ -43,12 +50,32 @@ class FirstActivity : AppCompatActivity() {
         listsCollection.get().addOnSuccessListener { documents ->
             val userLists = documents.mapNotNull { doc ->
                 doc.toObject(ShoppingLists::class.java)
-            }
+            }.toMutableList()
+            userLists.add(ShoppingLists(isCardEmpty = true)) // Lägg till 'null' för att representera det tomma kortet
             adapter.setItems(userLists)
         }.addOnFailureListener { e ->
             // Hantera eventuella fel här, t.ex. visa ett felmeddelande till användaren
             Log.w("Firestore", "Error getting documents: ", e)
         }
+    }
+
+    private fun popUpForNewCardList() {
+        val popUpView = LayoutInflater.from(this).inflate(R.layout.add_shopping_list, null)
+        val editTextListName = popUpView.findViewById<EditText>(R.id.editTextListName)
+        val editTextCategory = popUpView.findViewById<EditText>(R.id.editTextCategory)
+
+        AlertDialog.Builder(this)
+            .setView(popUpView)
+            .setTitle("Create a new list")
+            .setPositiveButton("Save") { dialog, which ->
+                val name = editTextListName.text.toString()
+                val category = editTextCategory.text.toString()
+                if (name.isNotBlank() && category.isNotBlank()) {
+                    addNewList(name, category)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun addNewList(name: String, category: String) {
@@ -57,7 +84,6 @@ class FirstActivity : AppCompatActivity() {
         db.collection("users").document(userId).collection("shoppingLists")
             .add(newList)
             .addOnSuccessListener {
-                // Uppdatera RecyclerView med den nya listan
                 loadUserLists(userId)
             }
             .addOnFailureListener { e ->
