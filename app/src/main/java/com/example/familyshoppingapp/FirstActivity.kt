@@ -1,5 +1,6 @@
 package com.example.familyshoppingapp
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -20,6 +21,7 @@ class FirstActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first)
+        Log.d("!!!", "First Activity")
 
         userId = intent.getStringExtra("USER_ID") ?: throw IllegalStateException("No USER_ID provided")
 
@@ -32,11 +34,12 @@ class FirstActivity : AppCompatActivity() {
 
         adapter = CardListsAdapter { shoppingList ->
             if (shoppingList == null || shoppingList.isCardEmpty) {
-                // Användaren klickade på 'lägg till ny lista'-kortet
+
                 popUpForNewCardList()
             } else {
-                // Hantera öppning av befintlig lista
-                // Exempelvis, öppna en ny aktivitet med detaljer om shoppinglistan
+                val intent = Intent(this, SecondActivity::class.java)
+                intent.putExtra("LIST_ID", shoppingList.documentId)
+                startActivity(intent)
             }
         }
         recyclerView.layoutManager = GridLayoutManager(this, 2)
@@ -55,7 +58,7 @@ class FirstActivity : AppCompatActivity() {
             adapter.setItems(userLists)
         }.addOnFailureListener { e ->
             // Hantera eventuella fel här, t.ex. visa ett felmeddelande till användaren
-            Log.w("Firestore", "Error getting documents: ", e)
+            Log.w("!!!", "Error getting documents: ", e)
         }
     }
 

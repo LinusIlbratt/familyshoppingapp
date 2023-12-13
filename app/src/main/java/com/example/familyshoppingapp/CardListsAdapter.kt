@@ -40,7 +40,9 @@ class CardListsAdapter(private val onItemClicked: (ShoppingLists?) -> Unit) : Re
                 holder.textViewCategory.text = item.category
             }
         }
-        holder.itemView.setOnClickListener { onItemClicked(item) }
+        holder.itemView.setOnClickListener {
+            onItemClicked(item)
+        }
     }
 
     override fun getItemCount() = items.size
