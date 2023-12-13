@@ -25,6 +25,7 @@ class FirstActivity : AppCompatActivity() {
 
         userId = intent.getStringExtra("USER_ID") ?: throw IllegalStateException("No USER_ID provided")
 
+
         setupRecyclerView()
         loadUserLists(userId)
     }
@@ -34,11 +35,11 @@ class FirstActivity : AppCompatActivity() {
 
         adapter = CardListsAdapter { shoppingList ->
             if (shoppingList == null || shoppingList.isCardEmpty) {
-
                 popUpForNewCardList()
             } else {
                 val intent = Intent(this, SecondActivity::class.java)
                 intent.putExtra("LIST_ID", shoppingList.documentId)
+                Log.d("!!!", "Starting SecondActivity with LIST_ID: ${shoppingList.documentId}")
                 startActivity(intent)
             }
         }
@@ -52,12 +53,14 @@ class FirstActivity : AppCompatActivity() {
 
         listsCollection.get().addOnSuccessListener { documents ->
             val userLists = documents.mapNotNull { doc ->
-                doc.toObject(ShoppingLists::class.java)
+                doc.toObject(ShoppingLists::class.java).apply {
+                    documentId = doc.id
+                }
             }.toMutableList()
-            userLists.add(ShoppingLists(isCardEmpty = true)) // Lägg till 'null' för att representera det tomma kortet
+            userLists.add(ShoppingLists(isCardEmpty = true))
             adapter.setItems(userLists)
         }.addOnFailureListener { e ->
-            // Hantera eventuella fel här, t.ex. visa ett felmeddelande till användaren
+
             Log.w("!!!", "Error getting documents: ", e)
         }
     }
@@ -86,11 +89,13 @@ class FirstActivity : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
         db.collection("users").document(userId).collection("shoppingLists")
             .add(newList)
-            .addOnSuccessListener {
+            .addOnSuccessListener { documentReference ->
+
+                Log.d("!!!", "List added with ID: ${documentReference.id}")
                 loadUserLists(userId)
             }
             .addOnFailureListener { e ->
-                // Hantera fel, t.ex. visa ett felmeddelande
+                Log.w("!!!", "Error adding document", e)
             }
     }
 }

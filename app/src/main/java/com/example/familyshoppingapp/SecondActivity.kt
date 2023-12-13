@@ -29,7 +29,8 @@ class SecondActivity : AppCompatActivity() {
         setContentView(R.layout.activity_second)
         Log.d("!!!", "Second Activity")
 
-        listId = intent.getStringExtra("LIST_ID") ?: return
+        listId = intent.getStringExtra("LIST_ID") ?: "defaultListId"
+        Log.d("!!!", "List ID: $listId")
 
         adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
             removeItemsFromDatabase(documentId)
@@ -39,16 +40,6 @@ class SecondActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
-
-        val button = findViewById<Button>(R.id.button1)
-        button.setOnClickListener {
-            Log.d("!!!", "test")
-        }
-
-        val testButton: FloatingActionButton = findViewById(R.id.testButton)
-        testButton.setOnClickListener {
-            Log.d("!!!", "Test button")
-        }
 
 
 
@@ -120,10 +111,10 @@ class SecondActivity : AppCompatActivity() {
     private fun removeItemsFromDatabase(documentId: String) {
         productsRef.document(documentId).delete()
             .addOnSuccessListener {
-                Log.d("Firestore", "Document successfully deleted")
+                Log.d("!!!", "Document successfully deleted")
             }
             .addOnFailureListener { e ->
-                Log.w("Firestore", "Error deleting document", e)
+                Log.w("!!!", "Error deleting document", e)
             }
     }
 }
