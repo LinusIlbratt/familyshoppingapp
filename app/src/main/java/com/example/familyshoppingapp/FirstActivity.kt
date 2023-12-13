@@ -85,20 +85,21 @@ class FirstActivity : AppCompatActivity() {
 
     private fun loadUserLists(userId: String) {
         val db = FirebaseFirestore.getInstance()
-        val listsCollection = db.collection("users").document(userId).collection("shoppingLists")
+        val listsCollection = db.collection("shoppingLists")
 
-        listsCollection.get().addOnSuccessListener { documents ->
-            val userLists = documents.mapNotNull { list ->
-                list.toObject(ShoppingLists::class.java).apply {
-                    documentId = list.id
-                }
-            }.toMutableList()
-            userLists.add(ShoppingLists(isCardEmpty = true))
-            adapter.setItems(userLists)
-        }.addOnFailureListener { e ->
-
-            Log.w("!!!", "Error getting documents: ", e)
-        }
+        listsCollection.whereArrayContains("members", userId).get()
+            .addOnSuccessListener { documents ->
+                val userLists = documents.mapNotNull { doc ->
+                    doc.toObject(ShoppingLists::class.java).apply {
+                        documentId = doc.id
+                    }
+                }.toMutableList()
+                userLists.add(ShoppingLists(isCardEmpty = true))
+                adapter.setItems(userLists)
+            }
+            .addOnFailureListener { e ->
+                Log.w("!!!", "Error getting documents: ", e)
+            }
     }
 
     private fun popUpForNewCardList() {
@@ -121,14 +122,14 @@ class FirstActivity : AppCompatActivity() {
     }
 
     private fun addNewList(name: String, category: String) {
-        val newList = ShoppingLists(name, category)
+        val newList = ShoppingLists(name, category, members = listOf(userId)) // Inkludera skaparens ID
         val db = FirebaseFirestore.getInstance()
-        db.collection("users").document(userId).collection("shoppingLists")
+
+        db.collection("shoppingLists") // Lägg till listan i huvudsakliga 'shoppingLists'-kollektionen
             .add(newList)
             .addOnSuccessListener { documentReference ->
-
                 Log.d("!!!", "List added with ID: ${documentReference.id}")
-                loadUserLists(userId)
+                loadUserLists(userId) // Ladda om användarens listor
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error adding document", e)
@@ -216,16 +217,15 @@ class FirstActivity : AppCompatActivity() {
             db.collection("invitations").document(invitation.documentId)
                 .update("status", "accepted")
                 .addOnSuccessListener {
-                    // Uppdatering lyckades, nu lägg till användaren i listans tillgängliga användare
+                    // Lägg till användaren i listans medlemslista
                     addUserToList(invitation.listId, userId)
-                    // Uppdatera användargränssnittet här efter att ha accepterat inbjudan
+                    // Uppdatera användargränssnittet
                     loadUserLists(userId)
                 }
                 .addOnFailureListener {
                     // Hantera eventuella fel
                 }
         } catch (e: Exception) {
-            // Hantera undantag här och logga dem för att felsöka
             Log.e("Exception", "Error accepting invitation: ${e.message}")
         }
     }
@@ -234,10 +234,9 @@ class FirstActivity : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
         val listRef = db.collection("shoppingLists").document(listId)
 
-        // Antag att listan har ett fält 'members' som är en lista av användar-ID:n
         listRef.update("members", FieldValue.arrayUnion(userId))
             .addOnSuccessListener {
-                // Användaren har lagts till i listan
+                // Användaren har lagts till i listans medlemslista
             }
             .addOnFailureListener {
                 // Hantera eventuella fel
