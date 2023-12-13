@@ -13,9 +13,6 @@
         android:theme="@style/Theme.FamilyShoppingApp"
         tools:targetApi="31">
         <activity
-            android:name=".TestActivity"
-            android:exported="false" />
-        <activity
             android:name=".FirstActivity"
             android:exported="false" />
         <activity
