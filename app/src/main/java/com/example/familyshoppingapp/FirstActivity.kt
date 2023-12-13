@@ -52,9 +52,9 @@ class FirstActivity : AppCompatActivity() {
         val listsCollection = db.collection("users").document(userId).collection("shoppingLists")
 
         listsCollection.get().addOnSuccessListener { documents ->
-            val userLists = documents.mapNotNull { doc ->
-                doc.toObject(ShoppingLists::class.java).apply {
-                    documentId = doc.id
+            val userLists = documents.mapNotNull { list ->
+                list.toObject(ShoppingLists::class.java).apply {
+                    documentId = list.id
                 }
             }.toMutableList()
             userLists.add(ShoppingLists(isCardEmpty = true))
