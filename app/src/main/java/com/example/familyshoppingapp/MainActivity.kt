@@ -43,11 +43,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun goToSecondActivity() {
-        val user = FirebaseAuth.getInstance().currentUser
-        val intent = Intent(this, FirstActivity::class.java)
-        intent.putExtra("USER_ID", user?.uid)
-        startActivity(intent)
+    private fun goToSecondActivity() {
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        if (firebaseUser != null) {
+            // Hämta nödvändig information från FirebaseUser
+            val userId = firebaseUser.uid
+            val email = firebaseUser.email ?: ""
+
+            // Skapa en instans av din User dataklass
+            val user = User(userId = userId, email = email)
+
+            // Skapa och starta intent
+            val intent = Intent(this, FirstActivity::class.java).apply {
+                putExtra("USER_DATA", user)
+            }
+            startActivity(intent)
+        } else {
+            // Hantera fall då användaren inte är inloggad
+            // T.ex. visa ett felmeddelande eller navigera till inloggningsskärmen
+        }
     }
 
     private fun signIn() {

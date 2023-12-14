@@ -65,13 +65,14 @@
                 android:id="@+id/inviteButton"
                 android:layout_width="30dp"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#F39B02"
+                android:background="@drawable/fab_background"
                 android:clickable="true"
+                app:backgroundTint="#5B87D9"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/addSignOnInviteBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@+id/inviteButton"
