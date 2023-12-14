@@ -245,13 +245,13 @@ class FirstActivity : AppCompatActivity() {
         db.collection("invitations").document(invitation.documentId)
             .update("status", "declined")
             .addOnSuccessListener {
-
-                // Update user UI after declining an invite
-                loadUserLists(user.userId)
+                Toast.makeText(this, "Invitation declined", Toast.LENGTH_SHORT).show()
+                loadUserLists(user.userId) // Update user UI
             }
-            .addOnFailureListener {
-                // TODO Handle exception!
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error declining invitation: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
+
 
 }
