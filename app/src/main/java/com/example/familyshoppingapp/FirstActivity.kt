@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +24,6 @@ class FirstActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first)
-        Log.d("!!!", "First Activity")
 
         user = intent.getParcelableExtra("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
 
@@ -44,18 +44,20 @@ class FirstActivity : AppCompatActivity() {
                 .whereEqualTo("invitedEmail", userEmail)
                 .addSnapshotListener { snapshots, e ->
                     if (e != null) {
-                        // TODO Handle exception!
+                        Toast.makeText(this, "Error loading invitations: ${e.message}", Toast.LENGTH_LONG).show()
                         return@addSnapshotListener
                     }
 
                     val invitationsList = mutableListOf<Invitation>()
-                    for (doc in snapshots!!) {
+                    snapshots?.forEach { doc ->
                         val invitation = doc.toObject(Invitation::class.java).copy(documentId = doc.id)
                         invitationsList.add(invitation)
                     }
 
                     showInvitationsPopup(invitationsList)
                 }
+        } else {
+            Toast.makeText(this, "Invalid email, please create one", Toast.LENGTH_SHORT).show() // This exception should never occur since you cant sign in without an email.
         }
     }
 
