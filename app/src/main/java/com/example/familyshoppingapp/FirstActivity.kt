@@ -233,12 +233,13 @@ class FirstActivity : AppCompatActivity() {
 
         listRef.update("members", FieldValue.arrayUnion(userId))
             .addOnSuccessListener {
-                // TODO add notification for a member being added to the members list?
+                Toast.makeText(this, "Member added to list successfully", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener {
-                // TODO Handle exception!
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error adding member to list: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
+
 
     fun declineInvitation(invitation: Invitation) {
         val db = FirebaseFirestore.getInstance()
