@@ -130,18 +130,18 @@ class FirstActivity : AppCompatActivity() {
     }
 
 
-    fun addNewList(name: String, category: String) {
+    private fun addNewList(name: String, category: String) {
         val newList = ShoppingLists(name, category, members = listOf(user.userId))
         val db = FirebaseFirestore.getInstance()
 
         db.collection("shoppingLists")
             .add(newList)
             .addOnSuccessListener { documentReference ->
-                Log.d("!!!", "List added with ID: ${documentReference.id}")
-                loadUserLists(user.userId) // Update user list
+                Toast.makeText(this, "List added:", Toast.LENGTH_SHORT).show()
+                loadUserLists(user.userId) // Update the users lists
             }
             .addOnFailureListener { e ->
-                Log.w("!!!", "Error adding document", e)
+                Toast.makeText(this, "Error adding list: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
