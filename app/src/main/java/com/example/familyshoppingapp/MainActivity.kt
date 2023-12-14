@@ -19,9 +19,10 @@ import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var auth: FirebaseAuth
-    lateinit var emailView: EditText
-    lateinit var passwordView: EditText
+    private lateinit var auth: FirebaseAuth
+    private lateinit var emailView: EditText
+    private lateinit var passwordView: EditText
+    private val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,7 +95,23 @@ class MainActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Toast.makeText(this, "Account created successfully", Toast.LENGTH_SHORT).show()
+                    // User created, adding information in firestore
+                    val firebaseUser = auth.currentUser
+                    val user = hashMapOf(
+                        "userId" to firebaseUser?.uid,
+                        "email" to firebaseUser?.email
+                    )
+
+                    firebaseUser?.uid?.let {
+                        db.collection("users").document(it).set(user)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Account created and user info saved successfully", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(this, "Failed to save user info: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                    }
+
                     goToSecondActivity()
                 } else {
                     Toast.makeText(this, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
