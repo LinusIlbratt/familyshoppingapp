@@ -119,13 +119,16 @@ class FirstActivity : AppCompatActivity() {
             .setPositiveButton("Save") { dialog, which ->
                 val name = editTextListName.text.toString()
                 val category = editTextCategory.text.toString()
-                if (name.isNotBlank() && category.isNotBlank()) {
+                if (name.isBlank() || category.isBlank()) {
+                    Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_LONG).show()
+                } else {
                     addNewList(name, category)
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
+
 
     fun addNewList(name: String, category: String) {
         val newList = ShoppingLists(name, category, members = listOf(user.userId))
