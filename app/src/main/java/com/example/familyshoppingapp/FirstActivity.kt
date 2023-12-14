@@ -145,7 +145,7 @@ class FirstActivity : AppCompatActivity() {
             }
     }
 
-    fun showInvitePopup(listId: String) {
+    private fun showInvitePopup(listId: String) {
         val inviteView = LayoutInflater.from(this).inflate(R.layout.send_invite, null)
         val emailEditText = inviteView.findViewById<EditText>(R.id.editTextEmailAddress)
 
@@ -160,7 +160,7 @@ class FirstActivity : AppCompatActivity() {
             .show()
     }
 
-    fun sendInvite(listId: String, email: String) {
+    private fun sendInvite(listId: String, email: String) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("invitations")
@@ -170,14 +170,13 @@ class FirstActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    // Create invite
                     createNewInvite(listId, email, db)
                 } else {
-                    // TODO Add notification if an invite is already pending
+                    Toast.makeText(this, "An invite is already pending to this email", Toast.LENGTH_LONG).show()
                 }
             }
             .addOnFailureListener { e ->
-                // TODO Handle exception!
+                Toast.makeText(this, "Error sending invite: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
