@@ -211,22 +211,21 @@ class FirstActivity : AppCompatActivity() {
         try {
             val db = FirebaseFirestore.getInstance()
 
-            // Update invite status
+            // Update status on the invitation
             db.collection("invitations").document(invitation.documentId)
                 .update("status", "accepted")
                 .addOnSuccessListener {
-                    // Add members to the members list
-                    addUserToList(invitation.listId, user.userId)
-                    // Update User UI
-                    loadUserLists(user.userId)
+                    addUserToList(invitation.listId, user.userId) // Adding member to the members list
+                    Toast.makeText(this, "Invitation accepted", Toast.LENGTH_SHORT).show()
                 }
-                .addOnFailureListener {
-                    // TODO Handle exception!
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error accepting invitation: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         } catch (e: Exception) {
-            Log.e("Exception", "Error accepting invitation: ${e.message}")
+            Toast.makeText(this, "Exception: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
+
 
     private fun addUserToList(listId: String, userId: String) {
         val db = FirebaseFirestore.getInstance()
