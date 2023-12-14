@@ -26,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.d("!!!", "Main activity")
 
         auth = Firebase.auth
         emailView = findViewById(R.id.emailEditText)
@@ -46,21 +45,20 @@ class MainActivity : AppCompatActivity() {
     private fun goToSecondActivity() {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         if (firebaseUser != null) {
-            // Hämta nödvändig information från FirebaseUser
+
             val userId = firebaseUser.uid
             val email = firebaseUser.email ?: ""
 
-            // Skapa en instans av din User dataklass
+
             val user = User(userId = userId, email = email)
 
-            // Skapa och starta intent
+
             val intent = Intent(this, FirstActivity::class.java).apply {
                 putExtra("USER_DATA", user)
             }
             startActivity(intent)
         } else {
-            // Hantera fall då användaren inte är inloggad
-            // T.ex. visa ett felmeddelande eller navigera till inloggningsskärmen
+            Toast.makeText(this, "You are not logged in. Please log in to continue", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -69,18 +67,18 @@ class MainActivity : AppCompatActivity() {
         val password = passwordView.text.toString()
 
         if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_LONG).show()
             return
         }
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("!!!", "user signed in")
+                    Toast.makeText(this, "Successfully signed in", Toast.LENGTH_SHORT).show()
                     goToSecondActivity()
                 } else {
-                    Log.d("!!!", "user not signed in ${task.exception}")
+                    Toast.makeText(this, "Sign in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
-
             }
     }
 
@@ -89,18 +87,18 @@ class MainActivity : AppCompatActivity() {
         val password = passwordView.text.toString()
 
         if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_LONG).show()
             return
         }
 
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("!!!", "create success")
+                    Toast.makeText(this, "Account created successfully", Toast.LENGTH_SHORT).show()
                     goToSecondActivity()
                 } else {
-                    Log.d("!!!", "user not created ${task.exception}")
+                    Toast.makeText(this, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
-
             }
     }
 

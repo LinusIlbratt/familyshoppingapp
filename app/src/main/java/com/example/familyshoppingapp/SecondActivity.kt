@@ -27,10 +27,9 @@ class SecondActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_second)
-        Log.d("!!!", "Second Activity")
+
 
         listId = intent.getStringExtra("LIST_ID") ?: "defaultListId"
-        Log.d("!!!", "List ID: $listId")
 
         adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
             removeItemsFromDatabase(documentId)
@@ -45,7 +44,7 @@ class SecondActivity : AppCompatActivity() {
 
         val floatingButton: FloatingActionButton = findViewById(R.id.addItem)
         floatingButton.setOnClickListener {
-            Log.d("!!!", "Float button clicked")
+
             addNewItemPopUpWindow()
         }
 
@@ -58,7 +57,7 @@ class SecondActivity : AppCompatActivity() {
         snapshotListener = productsRef.whereEqualTo("listId", listId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.w("!!!", "Listen failed!", e)
+                    Toast.makeText(this, "Error loading items: ${e.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
                 shoppingItemList.clear()
@@ -81,16 +80,15 @@ class SecondActivity : AppCompatActivity() {
         val newItem = shoppingItem.copy(listId = listId)
         productsRef.add(newItem)
             .addOnSuccessListener { documentReference ->
-                Log.d("!!!", "Item added to Firestore")
+
             }
             .addOnFailureListener { e ->
-                Log.w("!!!", "Error adding item to Firestore")
+                Toast.makeText(this, "Error adding item: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
 
     private fun addNewItemPopUpWindow() {
-        Log.d("!!!", "Inside addNewItemPopUp")
         val builder = AlertDialog.Builder(this)
         val inflater = layoutInflater
         val dialogLayout = inflater.inflate(R.layout.add_shopping_item, null)
@@ -100,8 +98,10 @@ class SecondActivity : AppCompatActivity() {
             .setPositiveButton("Add") { dialog, which ->
                 val itemName = editItemName.text.toString()
 
-                if (itemName.isNotEmpty()) {
-                    val newItem = ShoppingItem(name = itemName, listId = listId) // Inkludera listId här
+                if (itemName.isBlank()) {
+                    Toast.makeText(this, "Item name cannot be empty", Toast.LENGTH_SHORT).show()
+                } else {
+                    val newItem = ShoppingItem(name = itemName, listId = listId)
                     addItemsToDatabase(newItem)
                 }
             }
@@ -111,10 +111,10 @@ class SecondActivity : AppCompatActivity() {
     private fun removeItemsFromDatabase(documentId: String) {
         productsRef.document(documentId).delete()
             .addOnSuccessListener {
-                Log.d("!!!", "Document successfully deleted")
+
             }
             .addOnFailureListener { e ->
-                Log.w("!!!", "Error deleting document", e)
+
             }
     }
 }
