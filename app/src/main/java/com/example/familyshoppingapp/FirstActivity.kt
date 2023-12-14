@@ -190,10 +190,10 @@ class FirstActivity : AppCompatActivity() {
 
         db.collection("invitations").add(newInvite)
             .addOnSuccessListener {
-                // TODO Add notification for invitation being sent
+                Toast.makeText(this, "Invitation sent successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                // TODO Handle exception!
+                Toast.makeText(this, "Error sending invitation: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
