@@ -93,7 +93,7 @@ class FirstActivity : AppCompatActivity() {
         listsCollection.whereArrayContains("members", userId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    Log.w("!!!", "Listen failed.", e)
+                    Toast.makeText(this, "Error loading lists: ${e.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
 
