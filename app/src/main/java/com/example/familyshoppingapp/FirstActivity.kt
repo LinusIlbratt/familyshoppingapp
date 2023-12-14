@@ -25,7 +25,8 @@ class FirstActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first)
 
-        user = intent.getParcelableExtra("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
+        user = intent.getParcelableExtra("USER_DATA")
+            ?: throw IllegalStateException("No USER_DATA provided")
 
         setupRecyclerView()
 
@@ -44,20 +45,26 @@ class FirstActivity : AppCompatActivity() {
                 .whereEqualTo("invitedEmail", userEmail)
                 .addSnapshotListener { snapshots, e ->
                     if (e != null) {
-                        Toast.makeText(this, "Error loading invitations: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this,
+                            "Error loading invitations: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                         return@addSnapshotListener
                     }
 
                     val invitationsList = mutableListOf<Invitation>()
                     snapshots?.forEach { doc ->
-                        val invitation = doc.toObject(Invitation::class.java).copy(documentId = doc.id)
+                        val invitation =
+                            doc.toObject(Invitation::class.java).copy(documentId = doc.id)
                         invitationsList.add(invitation)
                     }
 
                     showInvitationsPopup(invitationsList)
                 }
         } else {
-            Toast.makeText(this, "Invalid email, please create one", Toast.LENGTH_SHORT).show() // This exception should never occur since you cant sign in without an email.
+            Toast.makeText(this, "Invalid email, please create one", Toast.LENGTH_SHORT)
+                .show() // This exception should never occur since you cant sign in without an email.
         }
     }
 
@@ -93,7 +100,8 @@ class FirstActivity : AppCompatActivity() {
         listsCollection.whereArrayContains("members", userId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    Toast.makeText(this, "Error loading lists: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Error loading lists: ${e.message}", Toast.LENGTH_LONG)
+                        .show()
                     return@addSnapshotListener
                 }
 
@@ -172,7 +180,11 @@ class FirstActivity : AppCompatActivity() {
                 if (documents.isEmpty) {
                     createNewInvite(listId, email, db)
                 } else {
-                    Toast.makeText(this, "An invite is already pending to this email", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        "An invite is already pending to this email",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
             .addOnFailureListener { e ->
@@ -193,7 +205,8 @@ class FirstActivity : AppCompatActivity() {
                 Toast.makeText(this, "Invitation sent successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error sending invitation: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error sending invitation: ${e.message}", Toast.LENGTH_LONG)
+                    .show()
             }
     }
 
@@ -215,11 +228,18 @@ class FirstActivity : AppCompatActivity() {
             db.collection("invitations").document(invitation.documentId)
                 .update("status", "accepted")
                 .addOnSuccessListener {
-                    addUserToList(invitation.listId, user.userId) // Adding member to the members list
+                    addUserToList(
+                        invitation.listId,
+                        user.userId
+                    ) // Adding member to the members list
                     Toast.makeText(this, "Invitation accepted", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Error accepting invitation: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this,
+                        "Error accepting invitation: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
         } catch (e: Exception) {
             Toast.makeText(this, "Exception: ${e.message}", Toast.LENGTH_LONG).show()
@@ -236,7 +256,8 @@ class FirstActivity : AppCompatActivity() {
                 Toast.makeText(this, "Member added to list successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error adding member to list: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error adding member to list: ${e.message}", Toast.LENGTH_LONG)
+                    .show()
             }
     }
 
@@ -250,7 +271,8 @@ class FirstActivity : AppCompatActivity() {
                 loadUserLists(user.userId) // Update user UI
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error declining invitation: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error declining invitation: ${e.message}", Toast.LENGTH_LONG)
+                    .show()
             }
     }
 

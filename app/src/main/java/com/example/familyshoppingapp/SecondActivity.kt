@@ -57,7 +57,7 @@ class SecondActivity : AppCompatActivity() {
         snapshotListener = productsRef.whereEqualTo("listId", listId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-
+                    Toast.makeText(this, "Error loading items: ${e.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
                 shoppingItemList.clear()
@@ -83,7 +83,7 @@ class SecondActivity : AppCompatActivity() {
 
             }
             .addOnFailureListener { e ->
-
+                Toast.makeText(this, "Error adding item: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -98,7 +98,9 @@ class SecondActivity : AppCompatActivity() {
             .setPositiveButton("Add") { dialog, which ->
                 val itemName = editItemName.text.toString()
 
-                if (itemName.isNotEmpty()) {
+                if (itemName.isBlank()) {
+                    Toast.makeText(this, "Item name cannot be empty", Toast.LENGTH_SHORT).show()
+                } else {
                     val newItem = ShoppingItem(name = itemName, listId = listId)
                     addItemsToDatabase(newItem)
                 }
