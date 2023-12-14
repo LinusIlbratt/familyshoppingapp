@@ -62,7 +62,7 @@ class FirstActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewLists)
 
-        // Uppdatera för att inkludera den nya callbacken
+
         adapter = CardListsAdapter(
             onItemClicked = { shoppingList ->
                 if (shoppingList == null || shoppingList.isCardEmpty) {
@@ -87,18 +87,22 @@ class FirstActivity : AppCompatActivity() {
         val db = FirebaseFirestore.getInstance()
         val listsCollection = db.collection("shoppingLists")
 
-        listsCollection.whereArrayContains("members", userId).get()
-            .addOnSuccessListener { documents ->
-                val userLists = documents.mapNotNull { doc ->
+
+        listsCollection.whereArrayContains("members", userId)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.w("!!!", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                val userLists = snapshots?.mapNotNull { doc ->
                     doc.toObject(ShoppingLists::class.java).apply {
                         documentId = doc.id
                     }
-                }.toMutableList()
+                }?.toMutableList() ?: mutableListOf()
+
                 userLists.add(ShoppingLists(isCardEmpty = true))
                 adapter.setItems(userLists)
-            }
-            .addOnFailureListener { e ->
-                Log.w("!!!", "Error getting documents: ", e)
             }
     }
 
@@ -121,15 +125,15 @@ class FirstActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun addNewList(name: String, category: String) {
+    fun addNewList(name: String, category: String) {
         val newList = ShoppingLists(name, category, members = listOf(userId)) // Inkludera skaparens ID
         val db = FirebaseFirestore.getInstance()
 
-        db.collection("shoppingLists") // Lägg till listan i huvudsakliga 'shoppingLists'-kollektionen
+        db.collection("shoppingLists")
             .add(newList)
             .addOnSuccessListener { documentReference ->
                 Log.d("!!!", "List added with ID: ${documentReference.id}")
-                loadUserLists(userId) // Ladda om användarens listor
+                loadUserLists(userId) // Update user list
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error adding document", e)
@@ -161,15 +165,14 @@ class FirstActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    // Skapa ny inbjudan
+                    // Create invite
                     createNewInvite(listId, email, db)
                 } else {
-                    // Redan en "pending" inbjudan finns
-                    // Hantera detta fall (t.ex. visa ett meddelande till användaren)
+                    // TODO Add notification if an invite is already pending
                 }
             }
             .addOnFailureListener { e ->
-                // Hantera eventuella fel
+                // TODO Handle exception!
             }
     }
 
@@ -183,10 +186,10 @@ class FirstActivity : AppCompatActivity() {
 
         db.collection("invitations").add(newInvite)
             .addOnSuccessListener {
-                // lyckas?
+                // TODO Add notification for invitation being sent
             }
             .addOnFailureListener { e ->
-                // misslyckas?
+                // TODO Handle exception!
             }
     }
 
@@ -194,36 +197,27 @@ class FirstActivity : AppCompatActivity() {
     private fun showInvitationsPopup(invitationsList: List<Invitation>) {
         invitationsList.forEach { invitation ->
             if (invitation.status == "pending") {
-                AlertDialog.Builder(this)
-                    .setTitle("Invitation Received")
-                    .setMessage("You have been invited to ${invitation.listId} by ${invitation.invitedBy}. Do you want to accept?")
-                    .setPositiveButton("Accept") { dialog, which ->
-                        Log.d("!!!", "accept pressed")
-                        acceptInvitation(invitation)
-                    }
-                    .setNegativeButton("Decline") { dialog, which ->
-                        declineInvitation(invitation)
-                    }
-                    .show()
+                val dialogFragment = InviteDialogFragment(invitation)
+                dialogFragment.show(supportFragmentManager, "InvitationDialog")
             }
         }
     }
 
-    private fun acceptInvitation(invitation: Invitation) {
+    fun acceptInvitation(invitation: Invitation) {
         try {
             val db = FirebaseFirestore.getInstance()
 
-            // Uppdatera status för inbjudan
+            // Update invite status
             db.collection("invitations").document(invitation.documentId)
                 .update("status", "accepted")
                 .addOnSuccessListener {
-                    // Lägg till användaren i listans medlemslista
+                    // Add members to the members list
                     addUserToList(invitation.listId, userId)
-                    // Uppdatera användargränssnittet
+                    // Update User UI
                     loadUserLists(userId)
                 }
                 .addOnFailureListener {
-                    // Hantera eventuella fel
+                    // TODO Handle exception!
                 }
         } catch (e: Exception) {
             Log.e("Exception", "Error accepting invitation: ${e.message}")
@@ -236,24 +230,24 @@ class FirstActivity : AppCompatActivity() {
 
         listRef.update("members", FieldValue.arrayUnion(userId))
             .addOnSuccessListener {
-                // Användaren har lagts till i listans medlemslista
+                // TODO add notification for a member being added to the members list?
             }
             .addOnFailureListener {
-                // Hantera eventuella fel
+                // TODO Handle exception!
             }
     }
 
-    private fun declineInvitation(invitation: Invitation) {
+    fun declineInvitation(invitation: Invitation) {
         val db = FirebaseFirestore.getInstance()
         db.collection("invitations").document(invitation.documentId)
             .update("status", "declined")
             .addOnSuccessListener {
-                // Uppdatering lyckades
-                // Uppdatera användargränssnittet här efter att ha avvisat inbjudan
+
+                // Update user UI after declining an invite
                 loadUserLists(userId)
             }
             .addOnFailureListener {
-                // Hantera eventuella fel
+                // TODO Handle exception!
             }
     }
 

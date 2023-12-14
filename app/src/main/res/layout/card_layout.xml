@@ -13,7 +13,7 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         app:cardCornerRadius="8dp"
-        app:cardBackgroundColor="@color/silver"
+        app:cardBackgroundColor="@color/light_orange"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -63,27 +63,39 @@
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/inviteButton"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="#F39B02"
                 android:clickable="true"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/baseline_add_24" />
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/inviteButton"
+                app:layout_constraintEnd_toEndOf="@+id/inviteButton"
+                app:layout_constraintStart_toStartOf="@+id/inviteButton"
+                app:layout_constraintTop_toTopOf="@+id/inviteButton"
+                app:srcCompat="@drawable/baseline_add_24"
+                android:elevation="6dp"/>
 
             <TextView
                 android:id="@+id/addMemberText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:clickable="false"
                 android:fontFamily="@font/poppins_bold_italic"
                 android:text="Add member"
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@+id/inviteButton"
+                app:layout_constraintEnd_toStartOf="@+id/inviteButton"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/inviteButton" />
+                app:layout_constraintTop_toTopOf="@+id/inviteButton"
+                app:layout_constraintVertical_bias="0.666" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
