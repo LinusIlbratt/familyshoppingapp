@@ -18,18 +18,18 @@ class FirstActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CardListsAdapter
-    private lateinit var userId: String
+    private lateinit var user: User
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_first)
         Log.d("!!!", "First Activity")
 
-        userId = intent.getStringExtra("USER_ID") ?: throw IllegalStateException("No USER_ID provided")
+        user = intent.getParcelableExtra("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
 
         setupRecyclerView()
 
-        loadUserLists(userId)
+        loadUserLists(user.userId)
 
         invitationListener()
     }
@@ -44,7 +44,7 @@ class FirstActivity : AppCompatActivity() {
                 .whereEqualTo("invitedEmail", userEmail)
                 .addSnapshotListener { snapshots, e ->
                     if (e != null) {
-                        // Hantera fel
+                        // TODO Handle exception!
                         return@addSnapshotListener
                     }
 
@@ -126,14 +126,14 @@ class FirstActivity : AppCompatActivity() {
     }
 
     fun addNewList(name: String, category: String) {
-        val newList = ShoppingLists(name, category, members = listOf(userId)) // Inkludera skaparens ID
+        val newList = ShoppingLists(name, category, members = listOf(user.userId))
         val db = FirebaseFirestore.getInstance()
 
         db.collection("shoppingLists")
             .add(newList)
             .addOnSuccessListener { documentReference ->
                 Log.d("!!!", "List added with ID: ${documentReference.id}")
-                loadUserLists(userId) // Update user list
+                loadUserLists(user.userId) // Update user list
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error adding document", e)
@@ -181,7 +181,7 @@ class FirstActivity : AppCompatActivity() {
             "listId" to listId,
             "invitedEmail" to email,
             "status" to "pending",
-            "invitedBy" to userId
+            "invitedBy" to user.email
         )
 
         db.collection("invitations").add(newInvite)
@@ -212,9 +212,9 @@ class FirstActivity : AppCompatActivity() {
                 .update("status", "accepted")
                 .addOnSuccessListener {
                     // Add members to the members list
-                    addUserToList(invitation.listId, userId)
+                    addUserToList(invitation.listId, user.userId)
                     // Update User UI
-                    loadUserLists(userId)
+                    loadUserLists(user.userId)
                 }
                 .addOnFailureListener {
                     // TODO Handle exception!
@@ -244,7 +244,7 @@ class FirstActivity : AppCompatActivity() {
             .addOnSuccessListener {
 
                 // Update user UI after declining an invite
-                loadUserLists(userId)
+                loadUserLists(user.userId)
             }
             .addOnFailureListener {
                 // TODO Handle exception!
