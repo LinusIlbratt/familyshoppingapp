@@ -171,6 +171,40 @@ class FirstActivity : AppCompatActivity() {
     private fun sendInvite(listId: String, email: String) {
         val db = FirebaseFirestore.getInstance()
 
+        // Först, få användar-ID för den givna e-postadressen
+        db.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { users ->
+                if (users.isEmpty) {
+                    Toast.makeText(this, "No user found with this email", Toast.LENGTH_LONG).show()
+                } else {
+                    val userId = users.documents.first().id // Anta att varje e-postadress har ett unikt användar-ID
+
+                    // Kontrollera sedan om det användar-ID:t finns i medlemslistan
+                    db.collection("shoppingLists").document(listId).get()
+                        .addOnSuccessListener { document ->
+                            val members = document.get("members") as? List<String> ?: listOf()
+                            Log.d("SendInvite", "Members list: $members")
+
+                            if (userId in members) {
+                                Toast.makeText(this, "User is already a member in your list", Toast.LENGTH_LONG).show()
+                            } else {
+                                checkForPendingInvitation(listId, email, db)
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Error checking list membership: ${e.message}", Toast.LENGTH_LONG).show()
+                            Log.e("SendInvite", "Error checking list membership", e)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error finding user by email: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun checkForPendingInvitation(listId: String, email: String, db: FirebaseFirestore) {
         db.collection("invitations")
             .whereEqualTo("listId", listId)
             .whereEqualTo("invitedEmail", email)
@@ -178,17 +212,29 @@ class FirstActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
-                    createNewInvite(listId, email, db)
+                    checkIfEmailExists(email, listId, db)
                 } else {
-                    Toast.makeText(
-                        this,
-                        "An invite is already pending to this email",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this, "An invite is already pending to this email", Toast.LENGTH_LONG).show()
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error sending invite: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error checking pending invitations: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun checkIfEmailExists(email: String, listId: String, db: FirebaseFirestore) {
+        db.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    createNewInvite(listId, email, db)
+                } else {
+                    Toast.makeText(this, "No user found with this email", Toast.LENGTH_LONG).show()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error checking email existence: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
