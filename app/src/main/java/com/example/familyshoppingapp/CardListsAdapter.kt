@@ -11,15 +11,19 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class CardListsAdapter(
     private val onItemClicked: (ShoppingLists?) -> Unit,
-    private val onInviteClicked: (String) -> Unit
+    private val onInviteClicked: (String) -> Unit,
+    private val onItemLongClicked: (ShoppingLists?) -> Unit
 ) : RecyclerView.Adapter<CardListsAdapter.CardViewHolder>() {
 
     private var items: MutableList<ShoppingLists?> = mutableListOf()
 
     fun setItems(list: List<ShoppingLists>) {
         items.clear()
-        items.addAll(list)
-        items.add(null) // Lägger till null för det tomma kortet
+        if (list.isEmpty()) {
+            items.add(null) // Lägger till ett tomt kort om listan är tom
+        } else {
+            items.addAll(list)
+        }
         notifyDataSetChanged()
     }
 
@@ -37,6 +41,7 @@ class CardListsAdapter(
                 holder.textViewListName.visibility = View.GONE
                 holder.textViewCategory.visibility = View.GONE
                 holder.inviteButton.visibility = View.GONE
+                holder.addSignOnInviteButton.visibility = View.GONE
                 holder.addMemberText.visibility = View.GONE
             } else {
                 holder.imageViewAddIcon.visibility = View.GONE
@@ -45,9 +50,16 @@ class CardListsAdapter(
                 holder.textViewCategory.visibility = View.VISIBLE
                 holder.textViewCategory.text = item.category
                 holder.inviteButton.visibility = View.VISIBLE
+                holder.addSignOnInviteButton.visibility = View.VISIBLE
                 holder.addMemberText.visibility = View.VISIBLE
             }
         }
+
+        holder.itemView.setOnLongClickListener {
+            onItemLongClicked(item)
+            true
+        }
+
         holder.itemView.setOnClickListener {
             onItemClicked(item)
         }
@@ -66,6 +78,7 @@ class CardListsAdapter(
         val textViewCategory: TextView = itemView.findViewById(R.id.textViewCategory)
         val inviteButton: FloatingActionButton = itemView.findViewById(R.id.inviteButton)
         val addMemberText: TextView = itemView.findViewById(R.id.addMemberText)
+        val addSignOnInviteButton: ImageView = itemView.findViewById(R.id.addSignOnInviteBtn)
         fun bind(shoppingList: ShoppingLists) {
             // Bind data to your views
             // Exempel: itemView.textViewName.text = shoppingList.name

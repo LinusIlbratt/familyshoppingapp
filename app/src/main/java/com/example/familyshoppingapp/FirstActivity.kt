@@ -85,6 +85,12 @@ class FirstActivity : AppCompatActivity() {
             },
             onInviteClicked = { listId ->
                 showInvitePopup(listId)
+            },
+            onItemLongClicked = { shoppingList ->
+                // Handle long click for item deletion
+                if (shoppingList != null && !shoppingList.isCardEmpty) {
+                    showDeleteList(shoppingList)
+                }
             }
         )
 
@@ -168,10 +174,38 @@ class FirstActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showDeleteList(shoppingLists: ShoppingLists) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete List")
+            .setMessage("Are you sure you want to delete the list '${shoppingLists.name}'?")
+            .setPositiveButton("Delete") { dialog, which ->
+                deleteShoppingList(shoppingLists)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteShoppingList(shoppingLists: ShoppingLists) {
+        val db = FirebaseFirestore.getInstance()
+
+        shoppingLists.documentId?.let { documentId ->
+            db.collection("shoppingLists").document(documentId)
+                .delete()
+                .addOnSuccessListener {
+                    Toast.makeText(this, "List deleted successfully", Toast.LENGTH_SHORT).show()
+                    // Update your RecyclerView here, maybe by reloading the data
+                    loadUserLists(user.userId) // Assuming this method reloads the data
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Error deleting list: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        }
+    }
+
     private fun sendInvite(listId: String, email: String) {
         val db = FirebaseFirestore.getInstance()
 
-        // Först, få användar-ID för den givna e-postadressen
+
         db.collection("users")
             .whereEqualTo("email", email)
             .get()
@@ -179,9 +213,9 @@ class FirstActivity : AppCompatActivity() {
                 if (users.isEmpty) {
                     Toast.makeText(this, "No user found with this email", Toast.LENGTH_LONG).show()
                 } else {
-                    val userId = users.documents.first().id // Anta att varje e-postadress har ett unikt användar-ID
+                    val userId = users.documents.first().id
 
-                    // Kontrollera sedan om det användar-ID:t finns i medlemslistan
+
                     db.collection("shoppingLists").document(listId).get()
                         .addOnSuccessListener { document ->
                             val members = document.get("members") as? List<String> ?: listOf()
