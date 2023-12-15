@@ -12,7 +12,20 @@
           "package_name": "com.example.familyshoppingapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1034724928436-4t7nh54shpaa2bda3s0vh7s1o1mbev62.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.familyshoppingapp",
+            "certificate_hash": "24b6bd93b0dd7f6326bb14c3ac662769d3b45ba4"
+          }
+        },
+        {
+          "client_id": "1034724928436-c5gtq90v40e4kdkq019s4m7690517d5g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCvf75r9yR73OSVYxTUjyuGs040GZ9EQ4Q"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1034724928436-c5gtq90v40e4kdkq019s4m7690517d5g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
