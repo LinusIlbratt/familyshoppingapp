@@ -31,8 +31,6 @@ import com.google.firebase.firestore.toObject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var emailView: EditText
-    private lateinit var passwordView: EditText
     private val db = Firebase.firestore
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
@@ -42,24 +40,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         auth = Firebase.auth
-        emailView = findViewById(R.id.emailEditText)
-        passwordView = findViewById(R.id.passwordEditText)
 
         googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 handleSignInResult(task)
             }
-        }
-
-        val signUpButton = findViewById<Button>(R.id.btn_signUp)
-        signUpButton.setOnClickListener {
-            signUp()
-        }
-
-        val signInButton = findViewById<Button>(R.id.btn_signIn)
-        signInButton.setOnClickListener {
-            signIn()
         }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -93,62 +79,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             Toast.makeText(this, "You are not logged in. Please log in to continue", Toast.LENGTH_LONG).show()
         }
-    }
-
-    private fun signIn() {
-        val email = emailView.text.toString()
-        val password = passwordView.text.toString()
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(this, "Successfully signed in", Toast.LENGTH_SHORT).show()
-                    goToSecondActivity()
-                } else {
-                    Toast.makeText(this, "Sign in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-    }
-
-    private fun signUp() {
-        val email = emailView.text.toString()
-        val password = passwordView.text.toString()
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // User created, adding information in firestore
-                    val firebaseUser = auth.currentUser
-                    val user = hashMapOf(
-                        "userId" to firebaseUser?.uid,
-                        "email" to firebaseUser?.email
-                    )
-
-                    firebaseUser?.uid?.let {
-                        db.collection("users").document(it).set(user)
-                            .addOnSuccessListener {
-                                Toast.makeText(this, "Account created and user info saved successfully", Toast.LENGTH_SHORT).show()
-                            }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(this, "Failed to save user info: ${e.message}", Toast.LENGTH_LONG).show()
-                            }
-                    }
-
-                    goToSecondActivity()
-                } else {
-                    Toast.makeText(this, "Account creation failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                }
-            }
     }
 
     companion object {
