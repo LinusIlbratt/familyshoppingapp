@@ -79,7 +79,8 @@ class FirstActivity : AppCompatActivity() {
                 } else {
                     val intent = Intent(this, SecondActivity::class.java)
                     intent.putExtra("LIST_ID", shoppingList.documentId)
-                    Log.d("!!!", "Starting SecondActivity with LIST_ID: ${shoppingList.documentId}")
+                    intent.putExtra("LIST_TITLE", shoppingList.name) // Skicka titeln
+                    Log.d("!!!", "Starting SecondActivity with LIST_ID: ${shoppingList.documentId} and LIST_TITLE: ${shoppingList.name}")
                     startActivity(intent)
                 }
             },

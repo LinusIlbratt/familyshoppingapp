@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,29 +30,32 @@ class SecondActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_second)
 
-
         listId = intent.getStringExtra("LIST_ID") ?: "defaultListId"
+
+        val listTitle = intent.getStringExtra("LIST_TITLE") ?: "Default Title"
+
+        val titleTextView = findViewById<TextView>(R.id.shoppingListTitelText)
+        titleTextView.text = listTitle
 
         adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
             removeItemsFromDatabase(documentId)
         }
 
+        val backArrow = findViewById<ImageView>(R.id.backArrow)
+        backArrow.setOnClickListener{
+            finish()
+        }
 
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
-
-
 
         val floatingButton: FloatingActionButton = findViewById(R.id.addItem)
         floatingButton.setOnClickListener {
 
             addNewItemPopUpWindow()
         }
-
-
         setupSnapshotListener()
-
     }
 
     private fun setupSnapshotListener() {
