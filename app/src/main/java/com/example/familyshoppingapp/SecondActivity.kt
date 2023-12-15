@@ -46,6 +46,11 @@ class SecondActivity : AppCompatActivity() {
             finish()
         }
 
+        val resetButton = findViewById<Button>(R.id.resetAllButton)
+        resetButton.setOnClickListener {
+            adapter.resetAllProducts()
+        }
+
         val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
