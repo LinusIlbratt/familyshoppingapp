@@ -1,6 +1,7 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
+import android.graphics.Paint
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +24,6 @@ class ProductAdapter(
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewProductName: TextView = view.findViewById(R.id.productNameTextView)
         val buttonAddToCart: ImageButton = view.findViewById(R.id.buttonAddToCart)
-        val buttonDelete: Button = view.findViewById(R.id.buttonDelete)
         val buttonEdit: Button = view.findViewById(R.id.buttonEdit)
         val amountTextView: TextView = view.findViewById(R.id.amountTextView)
         val buttonAdd: ImageButton = view.findViewById(R.id.buttonAdd)
@@ -46,33 +46,43 @@ class ProductAdapter(
         }
 
         holder.buttonSubtract.setOnClickListener {
+            val currentItem = shoppingItemList[position]
             if (currentItem.quantity > 1) {
+                // Minska kvantiteten
                 currentItem.quantity -= 1
                 holder.amountTextView.text = "x${currentItem.quantity}"
+                currentItem.documentId?.let { documentId ->
+                    updateItemInDatabase(documentId, currentItem)
+                }
+            } else {
+                // Visa en dialogruta för att bekräfta borttagning
+                showDeleteConfirmation(holder.itemView.context, position)
             }
         }
 
         // Change alpha value if a product is added to the cart
         if (currentItem.isAdded) {
             holder.itemView.alpha = 0.5f
+            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         } else {
             holder.itemView.alpha = 1.0f
+            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
         }
 
         holder.buttonAddToCart.setOnClickListener {
             val currentItem = shoppingItemList[position]
             currentItem.isAdded = !currentItem.isAdded
 
-            holder.itemView.alpha = if (currentItem.isAdded) 0.5f else 1.0f
+            if (currentItem.isAdded) {
+                holder.itemView.alpha = 0.5f
+                holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            } else {
+                holder.itemView.alpha = 1.0f
+                holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            }
 
             currentItem.documentId?.let { documentId ->
                 updateItemInDatabase(documentId, currentItem)
-            }
-        }
-
-        holder.buttonDelete.setOnClickListener {
-            currentItem.documentId?.let { id ->
-                onDeleteClicked(id)
             }
         }
 
@@ -86,10 +96,6 @@ class ProductAdapter(
 
     override fun getItemCount() = shoppingItemList.size
 
-    fun removeItem(position: Int) {
-        shoppingItemList.removeAt(position)
-        notifyItemRemoved(position)
-    }
 
     private fun updateItemInDatabase(documentId: String, shoppingItem: ShoppingItem) {
         productsRef.document(documentId).set(shoppingItem)
@@ -123,6 +129,30 @@ class ProductAdapter(
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showDeleteConfirmation(context: Context, position: Int) {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Product")
+            .setMessage("Do you want to delete this product?")
+            .setPositiveButton("Yes") { dialog, which ->
+                val id = shoppingItemList[position].documentId
+                id?.let { onDeleteClicked(it) }
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    fun resetAllProducts() {
+        for (item in shoppingItemList) {
+            if (item.isAdded) {
+                item.isAdded = false
+                item.documentId?.let { documentId ->
+                    updateItemInDatabase(documentId, item)
+                }
+            }
+        }
+        notifyDataSetChanged() // Informera adaptern om att datan har ändrats
     }
 
 }
