@@ -25,8 +25,19 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import java.util.Locale
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.icu.text.SimpleDateFormat
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import java.io.File
+import java.util.Date
 
-class SecondActivity : AppCompatActivity() {
+class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
 
     private val database = Firebase.firestore
     private val productsRef = database.collection("products")
@@ -35,10 +46,21 @@ class SecondActivity : AppCompatActivity() {
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var adapter: ProductAdapter
     private lateinit var listId: String
+    private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
+    private val CAMERA_REQUEST_CODE = 100
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_second)
+
+        startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                // Hantera resultatet från kameran
+                val imageUri: Uri? = result.data?.data // Eller använd den fil-URI du skapade
+                // ... din kod för att hantera bilden ...
+            }
+        }
 
         requestMicrophonePermission()
 
@@ -49,9 +71,12 @@ class SecondActivity : AppCompatActivity() {
         val titleTextView = findViewById<TextView>(R.id.shoppingListTitelText)
         titleTextView.text = listTitle
 
-        adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
-            removeItemsFromDatabase(documentId)
-        }
+        adapter = ProductAdapter(
+            productsRef,
+            shoppingItemList,
+            { documentId -> removeItemsFromDatabase(documentId) },
+            this
+        )
 
         val backArrow = findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
@@ -131,14 +156,15 @@ class SecondActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             REQUEST_MICROPHONE_PERMISSION_CODE -> {
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // Behörigheten beviljades, fortsätt med mikrofonrelaterade uppgifter
-                } else {
-                    // Behörigheten nekades, hantera situationen
-                }
-                return
+                // Hantera mikrofonbehörighetsresultat
             }
-            // Andra 'case' för andra behörighetsförfrågningar
+            CAMERA_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Kamerabehörighet beviljad, starta kameran
+                } else {
+                    // Kamerabehörighet nekad, hantera det
+                }
+            }
         }
     }
 
@@ -236,8 +262,56 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCameraIconClick(item: ShoppingItem) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            // Begär kamerabehörigheten
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
+        } else {
+            // Kamerabehörighet redan beviljad, starta kameran
+            startCamera(this, item)
+        }
+    }
+    private fun startCamera(context: Context, item: ShoppingItem) {
+        // Skapa en unik fil för bilden som kommer att sparas
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val imageFile: File = File.createTempFile(
+            imageFileName, /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        )
+
+        // Skapa en URI för att spara bilden
+        val imageUri: Uri = FileProvider.getUriForFile(
+            context,
+            "com.example.familyshoppingapp.fileprovider", // Uppdatera denna rad
+            imageFile
+        )
+
+        // Skapa en Intent för att öppna kameran
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+
+        if (cameraIntent.resolveActivity(context.packageManager) != null) {
+            startCameraLauncher.launch(cameraIntent) // Använd launcher här
+        }
+    }
+
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            // Hantera bildresultatet här
+        }
+    }
+
+
     companion object {
         private const val REQUEST_MICROPHONE_PERMISSION_CODE = 1
+        private const val REQUEST_IMAGE_CAPTURE = 2
     }
 
 }

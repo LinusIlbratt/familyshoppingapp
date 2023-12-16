@@ -1,7 +1,12 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Paint
+import android.icu.text.SimpleDateFormat
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,13 +17,22 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.CollectionReference
+import java.io.File
+import java.util.Date
+import java.util.Locale
+
+interface OnCameraIconClickListener {
+    fun onCameraIconClick(item: ShoppingItem)
+}
 
 class ProductAdapter(
     private val productsRef: CollectionReference,
     private val shoppingItemList: MutableList<ShoppingItem>,
-    private val onDeleteClicked: (String) -> Unit
+    private val onDeleteClicked: (String) -> Unit,
+    private val onCameraIconClickListener: OnCameraIconClickListener
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -168,7 +182,15 @@ class ProductAdapter(
         val builder = AlertDialog.Builder(context)
         val inflater = LayoutInflater.from(context)
         val dialogLayout = inflater.inflate(R.layout.product_popup, null)
-        // ... konfiguration av din ImageView
+
+        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
+        imageViewCamera.setOnClickListener {
+            // Starta kamera-aktivitet
+            Log.d("!!!", "Click")
+            onCameraIconClickListener.onCameraIconClick(item)
+        }
+
+        // ... konfigurera din andra ImageView
 
         builder.setView(dialogLayout)
             .setPositiveButton("Close", null)
