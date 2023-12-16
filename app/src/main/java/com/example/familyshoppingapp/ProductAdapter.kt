@@ -9,11 +9,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentId
 
 class ProductAdapter(
     private val productsRef: CollectionReference,
@@ -44,6 +44,10 @@ class ProductAdapter(
         holder.buttonAdd.setOnClickListener {
             currentItem.quantity += 1
             holder.amountTextView.text = "x${currentItem.quantity}"
+        }
+
+        holder.textViewProductName.setOnClickListener {
+            showProductPopup(holder.itemView.context, currentItem)
         }
 
         holder.buttonSubtract.setOnClickListener {
@@ -160,4 +164,17 @@ class ProductAdapter(
         notifyDataSetChanged() // Informera adaptern om att datan har ändrats
     }
 
+    private fun showProductPopup(context: Context, item: ShoppingItem) {
+        val builder = AlertDialog.Builder(context)
+        val inflater = LayoutInflater.from(context)
+        val dialogLayout = inflater.inflate(R.layout.product_popup, null)
+        // ... konfiguration av din ImageView
+
+        builder.setView(dialogLayout)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
 }
+
+
