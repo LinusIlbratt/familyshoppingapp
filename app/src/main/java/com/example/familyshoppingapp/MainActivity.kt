@@ -30,8 +30,8 @@ import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var auth: FirebaseAuth
     private val db = Firebase.firestore
+    private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
@@ -41,12 +41,13 @@ class MainActivity : AppCompatActivity() {
 
         auth = Firebase.auth
 
-        googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                handleSignInResult(task)
+        googleSignInLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    handleSignInResult(task)
+                }
             }
-        }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -77,7 +78,11 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         } else {
-            Toast.makeText(this, "You are not logged in. Please log in to continue", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "You are not logged in. Please log in to continue",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -103,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             val account = completedTask.getResult(ApiException::class.java)
             firebaseAuthWithGoogle(account.idToken!!)
         } catch (e: ApiException) {
-            // Hantera undantag
+            // TODO Handle exception
         }
     }
 
@@ -113,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 val firebaseUser = auth.currentUser
                 if (firebaseUser != null) {
-                    // Kolla om användaren är ny eller redan finns
+                    // Check if the user is new or a existing one
                     if (task.result?.additionalUserInfo?.isNewUser == true) {
 
                         saveUserDataToFirestore(firebaseUser)
@@ -121,7 +126,7 @@ class MainActivity : AppCompatActivity() {
                     goToSecondActivity()
                 }
             } else {
-                // Hantera misslyckad autentisering
+                // TODO Handle failed authentication
             }
         }
     }
@@ -130,7 +135,7 @@ class MainActivity : AppCompatActivity() {
         val user = hashMapOf(
             "userId" to firebaseUser.uid,
             "email" to firebaseUser.email
-            // Du kan lägga till fler användaruppgifter här om det behövs
+            // Add more user information here if needed
         )
 
         db.collection("users").document(firebaseUser.uid).set(user)

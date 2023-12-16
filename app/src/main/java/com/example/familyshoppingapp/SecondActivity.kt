@@ -42,7 +42,7 @@ class SecondActivity : AppCompatActivity() {
         }
 
         val backArrow = findViewById<ImageView>(R.id.backArrow)
-        backArrow.setOnClickListener{
+        backArrow.setOnClickListener {
             finish()
         }
 
@@ -67,13 +67,13 @@ class SecondActivity : AppCompatActivity() {
         snapshotListener = productsRef.whereEqualTo("listId", listId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Toast.makeText(this, "Error loading items: ${e.message}", Toast.LENGTH_LONG).show()
+                    Log.d("!!!", "Line 70, Second Activity. Error loading items:")
                     return@addSnapshotListener
                 }
                 shoppingItemList.clear()
                 snapshot?.forEach { document ->
                     val item = document.toObject<ShoppingItem>().copy(documentId = document.id)
-                    if (item.listId == listId) { 
+                    if (item.listId == listId) {
                         shoppingItemList.add(item)
                     }
                 }
@@ -93,7 +93,7 @@ class SecondActivity : AppCompatActivity() {
 
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error adding item: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error adding item", Toast.LENGTH_LONG).show()
             }
     }
 
