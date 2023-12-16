@@ -31,7 +31,8 @@ class ProductAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        val itemView = LayoutInflater.from(parent.context).inflate(R.layout.item_product, parent, false)
+        val itemView =
+            LayoutInflater.from(parent.context).inflate(R.layout.item_product, parent, false)
         return ProductViewHolder(itemView)
     }
 
@@ -63,10 +64,12 @@ class ProductAdapter(
         // Change alpha value if a product is added to the cart
         if (currentItem.isAdded) {
             holder.itemView.alpha = 0.5f
-            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            holder.textViewProductName.paintFlags =
+                holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
         } else {
             holder.itemView.alpha = 1.0f
-            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            holder.textViewProductName.paintFlags =
+                holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
         }
 
         holder.buttonAddToCart.setOnClickListener {
@@ -75,10 +78,12 @@ class ProductAdapter(
 
             if (currentItem.isAdded) {
                 holder.itemView.alpha = 0.5f
-                holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                holder.textViewProductName.paintFlags =
+                    holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             } else {
                 holder.itemView.alpha = 1.0f
-                holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                holder.textViewProductName.paintFlags =
+                    holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
             }
 
             currentItem.documentId?.let { documentId ->
