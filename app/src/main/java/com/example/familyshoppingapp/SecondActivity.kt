@@ -309,6 +309,8 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     }
 
 
+
+
     companion object {
         private const val REQUEST_MICROPHONE_PERMISSION_CODE = 1
         private const val REQUEST_IMAGE_CAPTURE = 2
