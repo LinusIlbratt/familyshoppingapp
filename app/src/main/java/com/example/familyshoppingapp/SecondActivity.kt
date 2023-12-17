@@ -35,7 +35,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.lifecycle.MutableLiveData
-import com.bumptech.glide.Glide
 import java.io.File
 import java.util.Date
 import java.util.UUID
@@ -84,10 +83,16 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
         adapter = ProductAdapter(
             productsRef,
             shoppingItemList,
-            { documentId -> removeItemsFromDatabase(documentId) },
+            { documentId ->
+                val item = shoppingItemList.find { it.documentId == documentId }
+                val imageUrl = item?.imageUrl
+                if (imageUrl != null) {
+                    removeItemsFromDatabase(documentId, imageUrl)
+                }
+            },
             this,
             currentImageUrl,
-            this  // Skicka 'this' som LifecycleOwner
+            this
         )
 
         val backArrow = findViewById<ImageView>(R.id.backArrow)
@@ -247,10 +252,12 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
         builder.show()
     }
 
-    private fun removeItemsFromDatabase(documentId: String) {
+    private fun removeItemsFromDatabase(documentId: String, imageUrl: String) {
         productsRef.document(documentId).delete()
             .addOnSuccessListener {
-
+                imageUrl?.let { url ->
+                    deleteImageFromFirebase(url)
+                }
             }
             .addOnFailureListener { e ->
 
@@ -264,7 +271,7 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
             speechRecognizer.startListening(intent)
         } else {
-            // Be om mikrofonbehörigheten igen
+
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_MICROPHONE_PERMISSION_CODE)
         }
     }
@@ -307,6 +314,7 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     }
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
+        item.oldImageUrl = item.imageUrl
         val filename = UUID.randomUUID().toString()
         val ref = storageReference.child("images/$filename")
 
@@ -314,6 +322,9 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
             .addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener { downloadUri ->
                     val imageUrl = downloadUri.toString()
+                    item.oldImageUrl?.let { oldImageUrl ->
+                        deleteImageFromFirebase(oldImageUrl)
+                    }
                     item.imageUrl = imageUrl
                     updateItemInDatabase(item.documentId, item)
                     currentImageUrl.postValue(imageUrl)  // Uppdatera LiveData
@@ -333,6 +344,15 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
                 .addOnFailureListener { e ->
                     Log.w("Firestore", "Error updating document", e)
                 }
+        }
+    }
+
+    private fun deleteImageFromFirebase(imageUrl: String) {
+        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+        storageRef.delete().addOnSuccessListener {
+            Log.d("!!!", "Old image successfully deleted")
+        }.addOnFailureListener {
+            Log.w("!!!", "Error deleting old image")
         }
     }
 

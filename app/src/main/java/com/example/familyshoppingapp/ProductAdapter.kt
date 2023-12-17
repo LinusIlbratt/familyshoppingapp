@@ -1,12 +1,7 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Paint
-import android.icu.text.SimpleDateFormat
-import android.net.Uri
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,16 +12,13 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.FileProvider
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
-import java.io.File
-import java.util.Date
-import java.util.Locale
+import com.google.firebase.storage.FirebaseStorage
 
 interface OnCameraIconClickListener {
     fun onCameraIconClick(item: ShoppingItem)
@@ -38,7 +30,7 @@ class ProductAdapter(
     private val onDeleteClicked: (String) -> Unit,
     private val onCameraIconClickListener: OnCameraIconClickListener,
     private val currentImageUrl: LiveData<String>,
-    private val lifecycleOwner: LifecycleOwner  // Lägg till denna rad
+    private val lifecycleOwner: LifecycleOwner
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -81,7 +73,7 @@ class ProductAdapter(
                 }
             } else {
                 // Visa en dialogruta för att bekräfta borttagning
-                showDeleteConfirmation(holder.itemView.context, position)
+                showItemDeleteConfirm(holder.itemView.context, position)
             }
         }
 
@@ -130,6 +122,7 @@ class ProductAdapter(
         productsRef.document(documentId).set(shoppingItem)
             .addOnSuccessListener {
                 Log.d("Firestore", "Document successfully updated")
+                notifyDataSetChanged() // Informera adaptern om att datan har ändrats
             }
             .addOnFailureListener { e ->
                 Log.w("Firestore", "Error updating document", e)
@@ -160,7 +153,7 @@ class ProductAdapter(
             .show()
     }
 
-    private fun showDeleteConfirmation(context: Context, position: Int) {
+    private fun showItemDeleteConfirm(context: Context, position: Int) {
         AlertDialog.Builder(context)
             .setTitle("Delete Product")
             .setMessage("Do you want to delete this product?")
@@ -170,6 +163,24 @@ class ProductAdapter(
             }
             .setNegativeButton("No", null)
             .show()
+    }
+
+    private fun removeImage(item: ShoppingItem) {
+        // Remove image from firebase
+        item.imageUrl?.let { imageUrl ->
+            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+            storageRef.delete().addOnSuccessListener {
+                Log.d("!!!", "Image deleted")
+            }.addOnFailureListener {
+                Log.w("!!!", "Error deleting image")
+            }
+        }
+
+        // Update ShoppingItem and remove the image url
+        item.imageUrl = null
+        item.documentId?.let { documentId ->
+            updateItemInDatabase(documentId, item)
+        }
     }
 
     fun resetAllProducts() {
@@ -190,15 +201,28 @@ class ProductAdapter(
         val dialogLayout = inflater.inflate(R.layout.product_popup, null)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
 
-        // Sätt befintlig bild om den finns
+
         item.imageUrl?.let { imageUrl ->
             Glide.with(context).load(imageUrl).into(uploadImageToImageView)
         }
 
-        // Observera LiveData för att uppdatera ImageView
+
         currentImageUrl.observe(lifecycleOwner, Observer { imageUrl ->
             Glide.with(context).load(imageUrl).into(uploadImageToImageView)
         })
+
+        uploadImageToImageView.setOnLongClickListener {
+
+            AlertDialog.Builder(context)
+                .setTitle("Remove Image")
+                .setMessage("Do you want to remove this image?")
+                .setPositiveButton("Yes") { dialog, which ->
+                    removeImage(item)
+                }
+                .setNegativeButton("No", null)
+                .show()
+            true
+        }
 
         val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
         imageViewCamera.setOnClickListener {
