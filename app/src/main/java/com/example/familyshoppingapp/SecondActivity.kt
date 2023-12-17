@@ -307,6 +307,7 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     }
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
+        item.oldImageUrl = item.imageUrl
         val filename = UUID.randomUUID().toString()
         val ref = storageReference.child("images/$filename")
 
@@ -314,6 +315,9 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
             .addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener { downloadUri ->
                     val imageUrl = downloadUri.toString()
+                    item.oldImageUrl?.let { oldImageUrl ->
+                        deleteImageFromFirebase(oldImageUrl)
+                    }
                     item.imageUrl = imageUrl
                     updateItemInDatabase(item.documentId, item)
                     currentImageUrl.postValue(imageUrl)  // Uppdatera LiveData
@@ -333,6 +337,15 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
                 .addOnFailureListener { e ->
                     Log.w("Firestore", "Error updating document", e)
                 }
+        }
+    }
+
+    private fun deleteImageFromFirebase(imageUrl: String) {
+        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+        storageRef.delete().addOnSuccessListener {
+            Log.d("!!!", "Old image successfully deleted")
+        }.addOnFailureListener {
+            Log.w("!!!", "Error deleting old image")
         }
     }
 
