@@ -23,22 +23,52 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Locale
 import android.Manifest
+import android.app.Activity
+import android.icu.text.SimpleDateFormat
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
+import com.bumptech.glide.Glide
+import java.io.File
+import java.util.Date
+import java.util.UUID
 
-class SecondActivity : AppCompatActivity() {
+class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
 
     private val database = Firebase.firestore
     private val productsRef = database.collection("products")
     private val shoppingItemList = mutableListOf<ShoppingItem>()
     private var snapshotListener: ListenerRegistration? = null
+    private var currentShoppingItem: ShoppingItem? = null
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var adapter: ProductAdapter
     private lateinit var listId: String
+    private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
+    private val CAMERA_REQUEST_CODE = 100
+    private val storage = FirebaseStorage.getInstance()
+    private val storageReference = storage.reference
+    private var imageUri: Uri? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_second)
+
+        startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                imageUri?.let { uri ->
+                    currentShoppingItem?.let { item ->
+                        uploadImageToFirebaseStorage(uri, item)
+                    }
+                }
+            }
+        }
 
         requestMicrophonePermission()
 
@@ -49,9 +79,12 @@ class SecondActivity : AppCompatActivity() {
         val titleTextView = findViewById<TextView>(R.id.shoppingListTitelText)
         titleTextView.text = listTitle
 
-        adapter = ProductAdapter(productsRef, shoppingItemList) { documentId ->
-            removeItemsFromDatabase(documentId)
-        }
+        adapter = ProductAdapter(
+            productsRef,
+            shoppingItemList,
+            { documentId -> removeItemsFromDatabase(documentId) },
+            this
+        )
 
         val backArrow = findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
@@ -131,16 +164,18 @@ class SecondActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             REQUEST_MICROPHONE_PERMISSION_CODE -> {
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // Behörigheten beviljades, fortsätt med mikrofonrelaterade uppgifter
-                } else {
-                    // Behörigheten nekades, hantera situationen
-                }
-                return
+                // Hantera mikrofonbehörighetsresultat
             }
-            // Andra 'case' för andra behörighetsförfrågningar
+            CAMERA_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Kamerabehörighet beviljad, starta kameran
+                } else {
+                    // Kamerabehörighet nekad, hantera det
+                }
+            }
         }
     }
+
 
 
     private fun setupSnapshotListener() {
@@ -236,8 +271,69 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCameraIconClick(item: ShoppingItem) {
+        currentShoppingItem = item
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
+        } else {
+            startCamera()
+        }
+    }
+    private fun startCamera() {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        val imageFile: File = File.createTempFile(imageFileName, ".jpg", storageDir)
+
+        imageUri = FileProvider.getUriForFile(this, "com.example.familyshoppingapp.fileprovider", imageFile)
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        startCameraLauncher.launch(cameraIntent)
+    }
+
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            // Hantera bildresultatet här
+        }
+    }
+
+    private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
+        val filename = UUID.randomUUID().toString()
+        val ref = storageReference.child("images/$filename")
+
+        ref.putFile(imageUri)
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { downloadUri ->
+                    val imageUrl = downloadUri.toString()
+                    item.imageUrl = imageUrl
+                    updateItemInDatabase(item.documentId, item)
+                }
+            }
+            .addOnFailureListener {
+                // Hantera misslyckad uppladdning
+            }
+    }
+
+    private fun updateItemInDatabase(documentId: String?, shoppingItem: ShoppingItem) {
+        documentId?.let {
+            productsRef.document(it).set(shoppingItem)
+                .addOnSuccessListener {
+                    Log.d("Firestore", "Document successfully updated with new image URL")
+                }
+                .addOnFailureListener { e ->
+                    Log.w("Firestore", "Error updating document", e)
+                }
+        }
+    }
+
     companion object {
         private const val REQUEST_MICROPHONE_PERMISSION_CODE = 1
+        private const val REQUEST_IMAGE_CAPTURE = 2
     }
 
 }

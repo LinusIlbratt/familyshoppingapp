@@ -1,7 +1,12 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Paint
+import android.icu.text.SimpleDateFormat
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,16 +14,26 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentId
+import java.io.File
+import java.util.Date
+import java.util.Locale
+
+interface OnCameraIconClickListener {
+    fun onCameraIconClick(item: ShoppingItem)
+}
 
 class ProductAdapter(
     private val productsRef: CollectionReference,
     private val shoppingItemList: MutableList<ShoppingItem>,
-    private val onDeleteClicked: (String) -> Unit
+    private val onDeleteClicked: (String) -> Unit,
+    private val onCameraIconClickListener: OnCameraIconClickListener
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -44,6 +59,10 @@ class ProductAdapter(
         holder.buttonAdd.setOnClickListener {
             currentItem.quantity += 1
             holder.amountTextView.text = "x${currentItem.quantity}"
+        }
+
+        holder.textViewProductName.setOnClickListener {
+            showProductPopup(holder.itemView.context, currentItem)
         }
 
         holder.buttonSubtract.setOnClickListener {
@@ -160,4 +179,29 @@ class ProductAdapter(
         notifyDataSetChanged() // Informera adaptern om att datan har ändrats
     }
 
+    private fun showProductPopup(context: Context, item: ShoppingItem) {
+        val builder = AlertDialog.Builder(context)
+        val inflater = LayoutInflater.from(context)
+        val dialogLayout = inflater.inflate(R.layout.product_popup, null)
+
+        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
+        val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
+
+        item.imageUrl?.let { imageUrl ->
+            Glide.with(context).load(imageUrl).into(uploadImageToImageView)
+        }
+
+        imageViewCamera.setOnClickListener {
+            // Starta kamera-aktivitet
+            Log.d("!!!", "Click")
+            onCameraIconClickListener.onCameraIconClick(item)
+        }
+
+        builder.setView(dialogLayout)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
 }
+
+

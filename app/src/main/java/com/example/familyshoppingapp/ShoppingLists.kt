@@ -5,5 +5,6 @@ data class ShoppingLists(
     var category: String? = null,
     var documentId: String? = null,
     var isCardEmpty: Boolean = false,
-    var members: List<String> = listOf()
+    var members: List<String> = listOf(),
+    var imageUrl: String? = null
 )

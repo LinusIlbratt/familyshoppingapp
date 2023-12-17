@@ -7,5 +7,6 @@ data class ShoppingItem(
     var listId: String? = null,
     var isAdded: Boolean = false,
     var quantity: Int = 1,
-    var documentId: String? = null
+    var documentId: String? = null,
+    var imageUrl: String? = null
 )
