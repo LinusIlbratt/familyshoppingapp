@@ -23,10 +23,10 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.FirebaseStorage
 import java.util.Locale
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Environment
@@ -34,8 +34,10 @@ import android.provider.MediaStore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import com.bumptech.glide.Glide
 import java.io.File
 import java.util.Date
+import java.util.UUID
 
 class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
 
@@ -43,11 +45,15 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     private val productsRef = database.collection("products")
     private val shoppingItemList = mutableListOf<ShoppingItem>()
     private var snapshotListener: ListenerRegistration? = null
+    private var currentShoppingItem: ShoppingItem? = null
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var adapter: ProductAdapter
     private lateinit var listId: String
     private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
     private val CAMERA_REQUEST_CODE = 100
+    private val storage = FirebaseStorage.getInstance()
+    private val storageReference = storage.reference
+    private var imageUri: Uri? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,9 +62,11 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
 
         startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                // Hantera resultatet från kameran
-                val imageUri: Uri? = result.data?.data // Eller använd den fil-URI du skapade
-                // ... din kod för att hantera bilden ...
+                imageUri?.let { uri ->
+                    currentShoppingItem?.let { item ->
+                        uploadImageToFirebaseStorage(uri, item)
+                    }
+                }
             }
         }
 
@@ -169,6 +177,7 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     }
 
 
+
     private fun setupSnapshotListener() {
         snapshotListener = productsRef.whereEqualTo("listId", listId)
             .addSnapshotListener { snapshot, e ->
@@ -263,39 +272,24 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     }
 
     override fun onCameraIconClick(item: ShoppingItem) {
+        currentShoppingItem = item
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // Begär kamerabehörigheten
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
         } else {
-            // Kamerabehörighet redan beviljad, starta kameran
-            startCamera(this, item)
+            startCamera()
         }
     }
-    private fun startCamera(context: Context, item: ShoppingItem) {
-        // Skapa en unik fil för bilden som kommer att sparas
+    private fun startCamera() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val imageFileName = "JPEG_${timeStamp}_"
-        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val imageFile: File = File.createTempFile(
-            imageFileName, /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        )
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        val imageFile: File = File.createTempFile(imageFileName, ".jpg", storageDir)
 
-        // Skapa en URI för att spara bilden
-        val imageUri: Uri = FileProvider.getUriForFile(
-            context,
-            "com.example.familyshoppingapp.fileprovider", // Uppdatera denna rad
-            imageFile
-        )
+        imageUri = FileProvider.getUriForFile(this, "com.example.familyshoppingapp.fileprovider", imageFile)
 
-        // Skapa en Intent för att öppna kameran
         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-
-        if (cameraIntent.resolveActivity(context.packageManager) != null) {
-            startCameraLauncher.launch(cameraIntent) // Använd launcher här
-        }
+        startCameraLauncher.launch(cameraIntent)
     }
 
 
@@ -308,8 +302,34 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
         }
     }
 
+    private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
+        val filename = UUID.randomUUID().toString()
+        val ref = storageReference.child("images/$filename")
 
+        ref.putFile(imageUri)
+            .addOnSuccessListener {
+                ref.downloadUrl.addOnSuccessListener { downloadUri ->
+                    val imageUrl = downloadUri.toString()
+                    item.imageUrl = imageUrl
+                    updateItemInDatabase(item.documentId, item)
+                }
+            }
+            .addOnFailureListener {
+                // Hantera misslyckad uppladdning
+            }
+    }
 
+    private fun updateItemInDatabase(documentId: String?, shoppingItem: ShoppingItem) {
+        documentId?.let {
+            productsRef.document(it).set(shoppingItem)
+                .addOnSuccessListener {
+                    Log.d("Firestore", "Document successfully updated with new image URL")
+                }
+                .addOnFailureListener { e ->
+                    Log.w("Firestore", "Error updating document", e)
+                }
+        }
+    }
 
     companion object {
         private const val REQUEST_MICROPHONE_PERMISSION_CODE = 1

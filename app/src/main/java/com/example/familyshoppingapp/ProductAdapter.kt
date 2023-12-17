@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
 import java.io.File
 import java.util.Date
@@ -184,13 +185,17 @@ class ProductAdapter(
         val dialogLayout = inflater.inflate(R.layout.product_popup, null)
 
         val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
+        val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
+
+        item.imageUrl?.let { imageUrl ->
+            Glide.with(context).load(imageUrl).into(uploadImageToImageView)
+        }
+
         imageViewCamera.setOnClickListener {
             // Starta kamera-aktivitet
             Log.d("!!!", "Click")
             onCameraIconClickListener.onCameraIconClick(item)
         }
-
-        // ... konfigurera din andra ImageView
 
         builder.setView(dialogLayout)
             .setPositiveButton("Close", null)
