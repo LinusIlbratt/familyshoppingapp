@@ -18,6 +18,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
@@ -33,7 +36,9 @@ class ProductAdapter(
     private val productsRef: CollectionReference,
     private val shoppingItemList: MutableList<ShoppingItem>,
     private val onDeleteClicked: (String) -> Unit,
-    private val onCameraIconClickListener: OnCameraIconClickListener
+    private val onCameraIconClickListener: OnCameraIconClickListener,
+    private val currentImageUrl: LiveData<String>,
+    private val lifecycleOwner: LifecycleOwner  // Lägg till denna rad
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -183,17 +188,20 @@ class ProductAdapter(
         val builder = AlertDialog.Builder(context)
         val inflater = LayoutInflater.from(context)
         val dialogLayout = inflater.inflate(R.layout.product_popup, null)
-
-        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
 
+        // Sätt befintlig bild om den finns
         item.imageUrl?.let { imageUrl ->
             Glide.with(context).load(imageUrl).into(uploadImageToImageView)
         }
 
+        // Observera LiveData för att uppdatera ImageView
+        currentImageUrl.observe(lifecycleOwner, Observer { imageUrl ->
+            Glide.with(context).load(imageUrl).into(uploadImageToImageView)
+        })
+
+        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
         imageViewCamera.setOnClickListener {
-            // Starta kamera-aktivitet
-            Log.d("!!!", "Click")
             onCameraIconClickListener.onCameraIconClick(item)
         }
 
