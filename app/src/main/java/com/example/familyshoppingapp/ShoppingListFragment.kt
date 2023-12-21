@@ -1,6 +1,5 @@
 package com.example.familyshoppingapp
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,6 +16,16 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ShoppingListFragment : Fragment() {
+
+    interface OnListSelectedListener {
+        fun onListSelected(listId: String, listTitle: String)
+    }
+
+    private var listSelectedListener: OnListSelectedListener? = null
+
+    fun setOnListSelectedListener(listener: OnListSelectedListener) {
+        this.listSelectedListener = listener
+    }
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CardListsAdapter
@@ -84,10 +93,11 @@ class ShoppingListFragment : Fragment() {
                 if (shoppingList == null || shoppingList.isCardEmpty) {
                     popUpForNewCardList()
                 } else {
-                    val intent = Intent(requireContext(), SecondActivity::class.java)
-                    intent.putExtra("LIST_ID", shoppingList.documentId)
-                    intent.putExtra("LIST_TITLE", shoppingList.name)
-                    startActivity(intent)
+                    // Anropa onListSelected på din listener
+                    listSelectedListener?.onListSelected(
+                        shoppingList.documentId ?: "defaultListId",
+                        shoppingList.name ?: "Default List"
+                    )
                 }
             },
             onInviteClicked = { listId ->

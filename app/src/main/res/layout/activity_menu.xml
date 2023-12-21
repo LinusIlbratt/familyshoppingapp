@@ -28,7 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <FrameLayout
-        android:id="@+id/shoppingList_fragment_container"
+        android:id="@+id/list_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"/>
