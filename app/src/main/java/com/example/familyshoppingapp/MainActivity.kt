@@ -6,27 +6,21 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -62,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
-    private fun goToSecondActivity() {
+    private fun goToMenuActivity() {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         if (firebaseUser != null) {
 
@@ -73,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             val user = User(userId = userId, email = email)
 
 
-            val intent = Intent(this, FirstActivity::class.java).apply {
+            val intent = Intent(this, MenuActivity::class.java).apply {
                 putExtra("USER_DATA", user)
             }
             startActivity(intent)
@@ -123,7 +117,7 @@ class MainActivity : AppCompatActivity() {
 
                         saveUserDataToFirestore(firebaseUser)
                     }
-                    goToSecondActivity()
+                    goToMenuActivity()
                 }
             } else {
                 // TODO Handle failed authentication

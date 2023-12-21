@@ -404,5 +404,14 @@ class ShoppingListFragment : Fragment() {
             }
     }
 
+    companion object {
+        fun newInstance(user: User): ShoppingListFragment {
+            val fragment = ShoppingListFragment()
+            val args = Bundle()
+            args.putParcelable("USER_DATA", user)
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
 }
