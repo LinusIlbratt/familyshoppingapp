@@ -85,10 +85,7 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
             shoppingItemList,
             { documentId ->
                 val item = shoppingItemList.find { it.documentId == documentId }
-                val imageUrl = item?.imageUrl
-                if (imageUrl != null) {
-                    removeItemsFromDatabase(documentId, imageUrl)
-                }
+                removeItemsFromDatabase(documentId, item?.imageUrl)
             },
             this,
             currentImageUrl,
@@ -252,15 +249,26 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
         builder.show()
     }
 
-    private fun removeItemsFromDatabase(documentId: String, imageUrl: String) {
+    private fun removeItemsFromDatabase(documentId: String, imageUrl: String?) {
+        Log.d("!!!", "Försöker ta bort dokument och bild: $documentId")
+
+        // Ta bort dokumentet från Firestore
         productsRef.document(documentId).delete()
             .addOnSuccessListener {
+                Log.d("!!!", "Dokument borttaget: $documentId")
+
+                // Ta bort bilden om det finns en
                 imageUrl?.let { url ->
                     deleteImageFromFirebase(url)
                 }
+
+                // Ta bort objektet från shoppingItemList
+                shoppingItemList.removeAll { it.documentId == documentId }
+                // Uppdatera RecyclerView
+                adapter.notifyDataSetChanged()
             }
             .addOnFailureListener { e ->
-
+                Log.e("!!!", "Error removing document: $documentId", e)
             }
     }
 
@@ -350,9 +358,9 @@ class SecondActivity : AppCompatActivity(), OnCameraIconClickListener {
     private fun deleteImageFromFirebase(imageUrl: String) {
         val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
         storageRef.delete().addOnSuccessListener {
-            Log.d("!!!", "Old image successfully deleted")
+            Log.d("!!!", "Bild borttagen: $imageUrl")
         }.addOnFailureListener {
-            Log.w("!!!", "Error deleting old image")
+            Log.w("!!!", "Error deleting image: $imageUrl", it)
         }
     }
 

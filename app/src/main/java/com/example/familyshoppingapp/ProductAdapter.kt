@@ -159,7 +159,7 @@ class ProductAdapter(
             .setMessage("Do you want to delete this product?")
             .setPositiveButton("Yes") { dialog, which ->
                 val id = shoppingItemList[position].documentId
-                id?.let { onDeleteClicked(it) }
+                id?.let { onDeleteClicked(it) } // Kontrollera denna rad
             }
             .setNegativeButton("No", null)
             .show()
