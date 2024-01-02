@@ -20,7 +20,7 @@ class HiddenGemsAdapter(private val hiddenGemsList: List<HiddenGem>) : RecyclerV
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val hiddenGem = hiddenGemsList[position]
         holder.titelTextView.text = hiddenGem.name
-        
+
     }
 
     override fun getItemCount(): Int {
