@@ -121,9 +121,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 val item = shoppingItemList.find { it.documentId == documentId }
                 removeItemsFromDatabase(documentId, item?.imageUrl)
             },
-            this,
-            currentImageUrl,
-            this
+            this // OnCameraIconClickListener
         )
 
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
