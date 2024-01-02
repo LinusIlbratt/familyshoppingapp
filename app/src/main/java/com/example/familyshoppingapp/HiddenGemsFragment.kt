@@ -63,4 +63,17 @@ class HiddenGemsFragment : Fragment() {
         builder?.create()?.show()
     }
 
+    private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem) {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("hidden_gems")
+            .add(newHiddenGem)
+            .addOnSuccessListener { documentReference ->
+                Log.d("HiddenGemsFragment", "DocumentSnapshot added with ID: ${documentReference.id}")
+                // Eventuellt uppdatera din RecyclerView här om nödvändigt
+            }
+            .addOnFailureListener { e ->
+                Log.w("HiddenGemsFragment", "Error adding document", e)
+            }
+    }
+
 }
