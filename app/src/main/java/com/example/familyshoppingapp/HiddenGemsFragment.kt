@@ -12,11 +12,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 
 class HiddenGemsFragment : Fragment() {
 
     private lateinit var hiddenGemsSectionAdapter: HiddenGemsSectionAdapter
     private lateinit var recyclerView: RecyclerView
+    private var firestoreListener: ListenerRegistration? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,6 +44,42 @@ class HiddenGemsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         return view
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupFirestoreListener()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        firestoreListener?.remove()
+    }
+
+    private fun setupFirestoreListener() {
+        val firestore = FirebaseFirestore.getInstance()
+        firestoreListener = firestore.collection("hidden_gems")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Log.w("HiddenGemsFragment", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                val hiddenGemsList = snapshots?.map { document ->
+                    document.toObject(HiddenGem::class.java)
+                } ?: emptyList()
+
+                updateRecyclerView(hiddenGemsList)
+            }
+    }
+
+    private fun updateRecyclerView(hiddenGemsList: List<HiddenGem>) {
+        val hiddenGemsByCategory = hiddenGemsList.groupBy { it.tag }
+        val sections = hiddenGemsByCategory.map { (category, hiddenGems) ->
+            HiddenGemListSection(header = category, items = hiddenGems)
+        }
+        hiddenGemsSectionAdapter = HiddenGemsSectionAdapter(sections)
+        recyclerView.adapter = hiddenGemsSectionAdapter
     }
 
     private fun showAddHiddenGemDialog() {
