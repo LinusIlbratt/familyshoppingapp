@@ -8,7 +8,7 @@
     tools:context=".FirstActivity">
 
     <TextView
-        android:id="@+id/textViewTitle"
+        android:id="@+id/hiddenGemTextTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
@@ -23,7 +23,7 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewLists"
+        android:id="@+id/recyclerViewGemList"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
@@ -32,6 +32,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewTitle" />
+        app:layout_constraintTop_toBottomOf="@id/hiddenGemTextTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
