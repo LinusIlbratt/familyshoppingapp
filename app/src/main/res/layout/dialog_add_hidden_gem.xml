@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <EditText
-        android:id="@+id/hidden_gem_name"
+        android:id="@+id/titel_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="200dp"
@@ -23,6 +23,6 @@
         android:hint="category"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hidden_gem_name" />
+        app:layout_constraintTop_toBottomOf="@+id/titel_name" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
