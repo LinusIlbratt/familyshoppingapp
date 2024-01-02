@@ -27,7 +27,7 @@ class HiddenGemsFragment : Fragment() {
             HiddenGemListSection(header = category, items = hiddenGems)
         }
 
-        hiddenGemsSectionAdapter = HiddenGemsSectionAdapter(hiddenGemsList)
+        hiddenGemsSectionAdapter = HiddenGemsSectionAdapter(sections)
         recyclerView.adapter = hiddenGemsSectionAdapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 

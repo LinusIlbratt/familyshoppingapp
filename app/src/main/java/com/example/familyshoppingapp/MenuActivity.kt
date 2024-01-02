@@ -32,7 +32,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
                 // Inga fragment i backstack, visa knapparna och dölj fragmentcontainern
-                findViewById<Button>(R.id.btnFindStores).visibility = View.VISIBLE
+                findViewById<Button>(R.id.btnHiddenGems).visibility = View.VISIBLE
                 findViewById<Button>(R.id.btn_createShoppingList).visibility = View.VISIBLE
                 findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
             }
@@ -52,7 +52,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     }
 
     private fun showShoppingListFragment() {
-        findViewById<Button>(R.id.btnFindStores).visibility = View.GONE
+        findViewById<Button>(R.id.btnHiddenGems).visibility = View.GONE
         findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.VISIBLE
