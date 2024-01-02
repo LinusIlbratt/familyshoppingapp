@@ -2,6 +2,7 @@ package com.example.familyshoppingapp
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
@@ -55,25 +56,46 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
     private val CAMERA_REQUEST_CODE = 100
     private val storage = FirebaseStorage.getInstance()
     private val storageReference = storage.reference
-    private var imageUri: Uri? = null
     private val currentImageUrl = MutableLiveData<String>()
+    private val productImageUris = mutableMapOf<String, Uri>()
+    private lateinit var productAdapter: ProductAdapter
+    private val imageUpdateLiveData = MutableLiveData<String>()
+    private var currentDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                imageUri?.let { uri ->
-                    currentShoppingItem?.let { item ->
+                currentShoppingItem?.let { item ->
+                    productImageUris[item.documentId]?.let { uri ->
                         uploadImageToFirebaseStorage(uri, item)
+                        currentDialog?.dismiss()  // Stänger dialogrutan
                     }
                 }
             }
         }
 
         requestMicrophonePermission()
+    }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is MenuActivity) {
+            context.productAdapterInterface = object : MenuActivity.ProductAdapterInterface {
+                override fun updateProductImage(documentId: String, imageUrl: String) {
+                    productAdapter.updateProductImage(documentId, imageUrl)
+                }
+            }
+        }
+    }
 
+    // När fragmentet inte längre är associerat med aktiviteten
+    override fun onDetach() {
+        super.onDetach()
+        if (activity is MenuActivity) {
+            (activity as MenuActivity).productAdapterInterface = null
+        }
     }
 
     override fun onCreateView(
@@ -149,7 +171,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 }
 
                 override fun onError(error: Int) {
-                    val errorMessage = when(error) {
+                    val errorMessage = when (error) {
                         SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
                         SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
                         // ... andra fall
@@ -159,7 +181,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 }
 
                 override fun onResults(results: Bundle) {
-                    val spokenText = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0) ?: ""
+                    val spokenText =
+                        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0)
+                            ?: ""
                     if (spokenText.isNotBlank()) {
                         val newItem = ShoppingItem(name = spokenText, listId = listId)
                         addItemsToDatabase(newItem)
@@ -178,12 +202,17 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             REQUEST_MICROPHONE_PERMISSION_CODE -> {
                 // Hantera mikrofonbehörighetsresultat
             }
+
             CAMERA_REQUEST_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Kamerabehörighet beviljad, starta kameran
@@ -193,7 +222,6 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
             }
         }
     }
-
 
 
     private fun setupSnapshotListener() {
@@ -252,7 +280,11 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 val itemName = editItemName.text.toString()
 
                 if (itemName.isBlank()) {
-                    Toast.makeText(requireContext(), "Item name cannot be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Item name cannot be empty",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     val newItem = ShoppingItem(name = itemName, listId = listId)
                     addItemsToDatabase(newItem)
@@ -285,46 +317,77 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
     }
 
     private fun startVoiceRecognition() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
             }
             speechRecognizer.startListening(intent)
         } else {
-            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_MICROPHONE_PERMISSION_CODE)
+            requestPermissions(
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_MICROPHONE_PERMISSION_CODE
+            )
         }
     }
 
     private fun requestMicrophonePermission() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_MICROPHONE_PERMISSION_CODE)
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_MICROPHONE_PERMISSION_CODE
+            )
         }
     }
 
     override fun onCameraIconClick(item: ShoppingItem) {
+        Log.d("!!!", "Selected item ID: ${item.documentId}")
         currentShoppingItem = item
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
         } else {
-            startCamera()
+            startCamera(item)
         }
     }
 
-    private fun startCamera() {
+    private fun startCamera(item: ShoppingItem) {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val imageFileName = "JPEG_${timeStamp}_"
         val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
         val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
 
-        imageUri = FileProvider.getUriForFile(requireContext(), "com.example.familyshoppingapp.fileprovider", imageFile)
+        val imageUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.example.familyshoppingapp.fileprovider",
+            imageFile
+        )
+
+        // Spara URI i Map endast om item.documentId inte är null
+        item.documentId?.let { id ->
+            productImageUris[id] = imageUri
+            Log.d("!!!", "Saved URI for item ID $id: $imageUri")
+        }
 
         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
             putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         }
         startCameraLauncher.launch(cameraIntent)
     }
-
 
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
@@ -336,12 +399,20 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
             .addOnSuccessListener {
                 ref.downloadUrl.addOnSuccessListener { downloadUri ->
                     val imageUrl = downloadUri.toString()
+                    imageUpdateLiveData.postValue(imageUrl)
                     item.oldImageUrl?.let { oldImageUrl ->
                         deleteImageFromFirebase(oldImageUrl)
                     }
                     item.imageUrl = imageUrl
                     updateItemInDatabase(item.documentId, item)
-                    currentImageUrl.postValue(imageUrl)  // Uppdatera LiveData
+
+                    // Uppdatera produktbilden i ProductListFragment
+                    (activity as? MenuActivity)?.let { activity ->
+                        val currentFragment = activity.supportFragmentManager.findFragmentById(R.id.list_fragment_container)
+                        if (currentFragment is ProductListFragment) {
+                            item.documentId?.let { it1 -> currentFragment.updateProductImage(it1, imageUrl) }
+                        }
+                    }
                 }
             }
             .addOnFailureListener {
@@ -361,12 +432,21 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         }
     }
 
-    private fun deleteImageFromFirebase(imageUrl: String) {
-        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-        storageRef.delete().addOnSuccessListener {
-            Log.d("!!!", "Bild borttagen: $imageUrl")
-        }.addOnFailureListener {
-            Log.w("!!!", "Error deleting image: $imageUrl", it)
+    private fun deleteImageFromFirebase(imageUrl: String?) {
+        if (!imageUrl.isNullOrEmpty()) {
+            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+            storageRef.delete().addOnSuccessListener {
+                Log.d("!!!", "Bild borttagen: $imageUrl")
+            }.addOnFailureListener {
+                Log.w("!!!", "Attempted to delete image with null or empty URL.")
+            }
+        }
+    }
+
+    fun updateProductImage(documentId: String, imageUrl: String) {
+        // Se till att adaptern är initialiserad
+        if (::productAdapter.isInitialized) {
+            productAdapter.updateProductImage(documentId, imageUrl)
         }
     }
 

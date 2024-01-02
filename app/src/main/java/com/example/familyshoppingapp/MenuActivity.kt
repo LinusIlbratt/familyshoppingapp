@@ -9,6 +9,12 @@ import androidx.appcompat.app.AlertDialog
 
 class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
 
+    interface ProductAdapterInterface {
+        fun updateProductImage(documentId: String, imageUrl: String)
+    }
+
+    var productAdapterInterface: ProductAdapterInterface? = null
+
     private lateinit var user: User
 
     override fun onCreate(savedInstanceState: Bundle?) {

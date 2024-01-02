@@ -14,8 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
-class ShoppingListFragment : Fragment() {
+class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponseListener {
 
     interface OnListSelectedListener {
         fun onListSelected(listId: String, listTitle: String)
@@ -26,6 +27,25 @@ class ShoppingListFragment : Fragment() {
     fun setOnListSelectedListener(listener: OnListSelectedListener) {
         this.listSelectedListener = listener
     }
+
+    override fun onInvitationAccepted(invitation: Invitation) {
+        acceptInvitation(invitation)
+    }
+
+    override fun onInvitationDeclined(invitation: Invitation) {
+        declineInvitation(invitation)
+    }
+
+    private fun showInvitationsPopup(invitationsList: List<Invitation>) {
+        invitationsList.forEach { invitation ->
+            if (invitation.status == "pending") {
+                val dialogFragment = InviteDialogFragment(invitation)
+                dialogFragment.setInvitationResponseListener(this) // 'this' now refers to an instance of InvitationResponseListener
+                dialogFragment.show(childFragmentManager, "InvitationDialog")
+            }
+        }
+    }
+
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CardListsAdapter
@@ -202,36 +222,73 @@ class ShoppingListFragment : Fragment() {
             .setTitle("Delete List")
             .setMessage("Are you sure you want to delete the list '${shoppingLists.name}'?")
             .setPositiveButton("Delete") { dialog, which ->
-                deleteShoppingList(shoppingLists)
+                deleteShoppingList(shoppingLists, user.userId)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun deleteShoppingList(shoppingLists: ShoppingLists) {
+    private fun deleteShoppingList(shoppingLists: ShoppingLists, userId: String) {
         val db = FirebaseFirestore.getInstance()
+        val storage = FirebaseStorage.getInstance()
 
         shoppingLists.documentId?.let { documentId ->
-            db.collection("shoppingLists").document(documentId)
-                .delete()
-                .addOnSuccessListener {
-                    Toast.makeText(
-                        requireContext(),
-                        "List deleted successfully",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Updates the user UI
-                    loadUserLists(user.userId)
+            db.collection("shoppingLists").document(documentId).get()
+                .addOnSuccessListener { document ->
+                    val members = document.get("members") as? List<String> ?: emptyList()
+
+                    if (members.size <= 1) {
+                        // Endast en medlem kvar, ta bort produkter och listan
+                        deleteAllProductsAndList(documentId, db, storage)
+                    } else {
+                        // Flera medlemmar finns, ta bara bort den aktuella användaren från listan
+                        removeUserFromList(documentId, userId, db)
+                    }
                 }
-                .addOnFailureListener { e ->
-                    Toast.makeText(
-                        requireContext(),
-                        "Can't delete this list, please try again in a moment",
-                        Toast.LENGTH_LONG
-                    )
-                        .show()
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Error fetching list details", Toast.LENGTH_LONG).show()
                 }
         }
+    }
+
+    private fun deleteAllProductsAndList(listId: String, db: FirebaseFirestore, storage: FirebaseStorage) {
+        // Ta bort alla produkter kopplade till listan
+        db.collection("products").whereEqualTo("listId", listId).get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val imageUrl = document.getString("imageUrl")
+                    imageUrl?.let {
+                        // Ta bort bilden från Firebase Storage
+                        val imageRef = storage.getReferenceFromUrl(it)
+                        imageRef.delete()
+                    }
+                    // Ta bort produkten från Firestore
+                    db.collection("products").document(document.id).delete()
+                }
+
+                // Slutligen, ta bort själva listan
+                db.collection("shoppingLists").document(listId).delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(requireContext(), "Error deleting list", Toast.LENGTH_LONG).show()
+                    }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Error fetching products", Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun removeUserFromList(listId: String, userId: String, db: FirebaseFirestore) {
+        db.collection("shoppingLists").document(listId)
+            .update("members", FieldValue.arrayRemove(userId))
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "You have left the list", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Error leaving list", Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun sendInvite(listId: String, email: String) {
@@ -345,16 +402,7 @@ class ShoppingListFragment : Fragment() {
     }
 
 
-    private fun showInvitationsPopup(invitationsList: List<Invitation>) {
-        invitationsList.forEach { invitation ->
-            if (invitation.status == "pending") {
-                val dialogFragment = InviteDialogFragment(invitation)
-                dialogFragment.show(childFragmentManager, "InvitationDialog")
-            }
-        }
-    }
-
-    fun acceptInvitation(invitation: Invitation) {
+    private fun acceptInvitation(invitation: Invitation) {
         try {
             val db = FirebaseFirestore.getInstance()
 
@@ -401,7 +449,7 @@ class ShoppingListFragment : Fragment() {
     }
 
 
-    fun declineInvitation(invitation: Invitation) {
+    private fun declineInvitation(invitation: Invitation) {
         val db = FirebaseFirestore.getInstance()
         db.collection("invitations").document(invitation.documentId)
             .update("status", "declined")

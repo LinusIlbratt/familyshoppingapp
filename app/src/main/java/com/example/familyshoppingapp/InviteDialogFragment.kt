@@ -10,9 +10,18 @@ import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.toObject
 
 class InviteDialogFragment(private val invitation: Invitation) : DialogFragment() {
+    interface InvitationResponseListener {
+        fun onInvitationAccepted(invitation: Invitation)
+        fun onInvitationDeclined(invitation: Invitation)
+    }
+
+    private var invitationResponseListener: InvitationResponseListener? = null
+
+    fun setInvitationResponseListener(listener: InvitationResponseListener) {
+        invitationResponseListener = listener
+    }
 
     private lateinit var listName: String
-//    private lateinit var invitedByEmail: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,19 +58,21 @@ class InviteDialogFragment(private val invitation: Invitation) : DialogFragment(
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return activity?.let {
-            val builder = AlertDialog.Builder(it)
-            builder.setTitle("Invitation Received")
-                .setMessage("Fetching list details....") // Temporary message until list name is fetched
-                .setPositiveButton("Accept") { dialog, which ->
+        // Get the context safely
+        val context = activity ?: throw IllegalStateException("Activity cannot be null")
 
-                    (activity as FirstActivity).acceptInvitation(invitation)
-                }
-                .setNegativeButton("Decline") { dialog, which ->
+        // Create the dialog builder
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Invitation Received")
+            .setMessage("Fetching list details....") // Temporary message until list name is fetched
+            .setPositiveButton("Accept") { _, _ ->
+                invitationResponseListener?.onInvitationAccepted(invitation)
+            }
+            .setNegativeButton("Decline") { _, _ ->
+                invitationResponseListener?.onInvitationDeclined(invitation)
+            }
 
-                    (activity as FirstActivity).declineInvitation(invitation)
-                }
-            builder.create()
-        } ?: throw IllegalStateException("Activity cannot be null")
+        // Return the created dialog
+        return builder.create()
     }
 }
