@@ -24,13 +24,15 @@ interface OnCameraIconClickListener {
     fun onCameraIconClick(item: ShoppingItem)
 }
 
+interface OnImageUpdatedListener {
+    fun onImageUpdated(imageUrl: String)
+}
+
 class ProductAdapter(
     private val productsRef: CollectionReference,
     private val shoppingItemList: MutableList<ShoppingItem>,
     private val onDeleteClicked: (String) -> Unit,
     private val onCameraIconClickListener: OnCameraIconClickListener,
-    private val currentImageUrl: LiveData<String>,
-    private val lifecycleOwner: LifecycleOwner
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -59,7 +61,13 @@ class ProductAdapter(
         }
 
         holder.textViewProductName.setOnClickListener {
-            showProductPopup(holder.itemView.context, currentItem)
+            showProductPopup(holder.itemView.context, currentItem, object : OnImageUpdatedListener {
+                override fun onImageUpdated(imageUrl: String) {
+                    currentItem.documentId?.let { documentId ->
+                        updateProductImage(documentId, imageUrl)
+                    }
+                }
+            })
         }
 
         holder.buttonSubtract.setOnClickListener {
@@ -72,7 +80,7 @@ class ProductAdapter(
                     updateItemInDatabase(documentId, currentItem)
                 }
             } else {
-                // Visa en dialogruta för att bekräfta borttagning
+
                 showItemDeleteConfirm(holder.itemView.context, position)
             }
         }
@@ -153,6 +161,14 @@ class ProductAdapter(
             .show()
     }
 
+    fun updateProductImage(documentId: String, imageUrl: String) {
+        val index = shoppingItemList.indexOfFirst { it.documentId == documentId }
+        if (index != -1) {
+            shoppingItemList[index].imageUrl = imageUrl
+            notifyItemChanged(index)
+        }
+    }
+
     private fun showItemDeleteConfirm(context: Context, position: Int) {
         AlertDialog.Builder(context)
             .setTitle("Delete Product")
@@ -192,27 +208,19 @@ class ProductAdapter(
                 }
             }
         }
-        notifyDataSetChanged() // Informera adaptern om att datan har ändrats
+        notifyDataSetChanged()
     }
 
-    private fun showProductPopup(context: Context, item: ShoppingItem) {
+    private fun showProductPopup(context: Context, item: ShoppingItem, onImageUpdatedListener: OnImageUpdatedListener): AlertDialog {
         val builder = AlertDialog.Builder(context)
-        val inflater = LayoutInflater.from(context)
-        val dialogLayout = inflater.inflate(R.layout.product_popup, null)
+        val dialogLayout = LayoutInflater.from(context).inflate(R.layout.product_popup, null)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
-
 
         item.imageUrl?.let { imageUrl ->
             Glide.with(context).load(imageUrl).into(uploadImageToImageView)
         }
 
-
-        currentImageUrl.observe(lifecycleOwner, Observer { imageUrl ->
-            Glide.with(context).load(imageUrl).into(uploadImageToImageView)
-        })
-
         uploadImageToImageView.setOnLongClickListener {
-
             AlertDialog.Builder(context)
                 .setTitle("Remove Image")
                 .setMessage("Do you want to remove this image?")
@@ -231,7 +239,10 @@ class ProductAdapter(
 
         builder.setView(dialogLayout)
             .setPositiveButton("Close", null)
-            .show()
+
+        val dialog = builder.create()
+        dialog.show()
+        return dialog
     }
 
 }

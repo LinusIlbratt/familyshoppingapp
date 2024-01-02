@@ -5,28 +5,25 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,9 +57,93 @@ class MainActivity : AppCompatActivity() {
         }
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        findViewById<Button>(R.id.btn_email_sign_up).setOnClickListener {
+            showSignUpDialog()
+        }
+
+        findViewById<Button>(R.id.btn_email_sign_in).setOnClickListener {
+            showSignInDialog()
+        }
     }
 
-    private fun goToSecondActivity() {
+    private fun showSignUpDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_sign_up, null)
+        val emailEditText = dialogView.findViewById<EditText>(R.id.editTextEmail)
+        val passwordEditText = dialogView.findViewById<EditText>(R.id.editTextPassword)
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Sign Up")
+            .setPositiveButton("Register") { dialog, which ->
+                val email = emailEditText.text.toString()
+                val password = passwordEditText.text.toString()
+                signUpUser(email, password)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showSignInDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_sign_in, null)
+        val emailEditText = dialogView.findViewById<EditText>(R.id.editTextEmail)
+        val passwordEditText = dialogView.findViewById<EditText>(R.id.editTextPassword)
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Sign In")
+            .setPositiveButton("Login") { dialog, which ->
+                val email = emailEditText.text.toString()
+                val password = passwordEditText.text.toString()
+                signInUser(email, password)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun signUpUser(email: String, password: String) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Registrering lyckad, uppdatera UI med användarens information
+                    val firebaseUser = auth.currentUser
+                    updateUI(firebaseUser)
+                } else {
+                    // Om registreringen misslyckas, visa ett meddelande till användaren
+                    Toast.makeText(baseContext, "Authentication failed.",
+                        Toast.LENGTH_SHORT).show()
+                    updateUI(null)
+                }
+            }
+    }
+
+    private fun signInUser(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Inloggning lyckad, uppdatera UI med användarens information
+                    val firebaseUser = auth.currentUser
+                    updateUI(firebaseUser)
+                } else {
+                    // Om inloggningen misslyckas, visa ett meddelande till användaren
+                    Toast.makeText(baseContext, "Authentication failed.",
+                        Toast.LENGTH_SHORT).show()
+                    updateUI(null)
+                }
+            }
+    }
+
+    private fun updateUI(user: FirebaseUser?) {
+        if (user != null) {
+            // Användaren är inloggad, navigera till MenuActivity
+            goToMenuActivity()
+        } else {
+            // Användaren är inte inloggad, förbli på denna skärm
+        }
+    }
+
+
+    private fun goToMenuActivity() {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         if (firebaseUser != null) {
 
@@ -73,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             val user = User(userId = userId, email = email)
 
 
-            val intent = Intent(this, FirstActivity::class.java).apply {
+            val intent = Intent(this, MenuActivity::class.java).apply {
                 putExtra("USER_DATA", user)
             }
             startActivity(intent)
@@ -123,7 +204,7 @@ class MainActivity : AppCompatActivity() {
 
                         saveUserDataToFirestore(firebaseUser)
                     }
-                    goToSecondActivity()
+                    goToMenuActivity()
                 }
             } else {
                 // TODO Handle failed authentication
