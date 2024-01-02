@@ -1,13 +1,17 @@
 package com.example.familyshoppingapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.firestore.FirebaseFirestore
 
 class HiddenGemsFragment : Fragment() {
 
@@ -41,6 +45,22 @@ class HiddenGemsFragment : Fragment() {
     }
 
     private fun showAddHiddenGemDialog() {
-        // Code to show the dialog
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
+        val builder = context?.let { ctx ->
+            AlertDialog.Builder(ctx)
+                .setView(dialogView)
+                .setTitle("Add New Hidden Gem")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Add") { dialog, which ->
+                    val name = dialogView.findViewById<EditText>(R.id.hidden_gem_name).text.toString()
+                    val category = dialogView.findViewById<EditText>(R.id.category_name).text.toString()
+
+                    val newHiddenGem = HiddenGem(name, "", 0.0, 0.0, null, category)
+                    addNewHiddenGemToFirestore(newHiddenGem)
+                }
+        }
+
+        builder?.create()?.show()
     }
+
 }
