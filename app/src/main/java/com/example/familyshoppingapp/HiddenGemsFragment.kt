@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class HiddenGemsFragment : Fragment() {
 
@@ -22,6 +23,11 @@ class HiddenGemsFragment : Fragment() {
 
         val hiddenGemsList = listOf<HiddenGem>()
 
+        val fabAddHiddenGem = view.findViewById<FloatingActionButton>(R.id.fab_add_hidden_gem)
+        fabAddHiddenGem.setOnClickListener {
+            showAddHiddenGemDialog()
+        }
+
         val hiddenGemsByCategory = hiddenGemsList.groupBy { it.tag }
         val sections = hiddenGemsByCategory.map { (category, hiddenGems) ->
             HiddenGemListSection(header = category, items = hiddenGems)
@@ -32,5 +38,9 @@ class HiddenGemsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         return view
+    }
+
+    private fun showAddHiddenGemDialog() {
+        // Code to show the dialog
     }
 }
