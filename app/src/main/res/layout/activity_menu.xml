@@ -6,10 +6,10 @@
     android:layout_height="match_parent">
 
     <Button
-        android:id="@+id/btnFindStores"
+        android:id="@+id/btn_HiddenGems"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Hitta Unika Butiker"
+        android:text="My Hidden Gems"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,11 +21,16 @@
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.4"
         app:layout_constraintHeight_percent="0.1"
-        android:text="Skapa Ny Lista"
+        android:text="Create new shoppinglist"
         android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/btnFindStores"
+        app:layout_constraintTop_toBottomOf="@id/btn_HiddenGems"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <FrameLayout
+        android:id="@+id/hidden_gem_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
     <FrameLayout
         android:id="@+id/list_fragment_container"

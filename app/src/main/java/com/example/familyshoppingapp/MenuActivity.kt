@@ -24,6 +24,11 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         val bundle = intent.extras
         user = bundle?.getParcelable("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
 
+        val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
+        btnHiddenGem.setOnClickListener {
+            showHiddenGemsFragment()
+        }
+
         val btnCreateShoppingList = findViewById<Button>(R.id.btn_createShoppingList)
         btnCreateShoppingList.setOnClickListener {
             showShoppingListFragment()
@@ -32,7 +37,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
                 // Inga fragment i backstack, visa knapparna och dölj fragmentcontainern
-                findViewById<Button>(R.id.btnFindStores).visibility = View.VISIBLE
+                findViewById<Button>(R.id.btn_HiddenGems).visibility = View.VISIBLE
                 findViewById<Button>(R.id.btn_createShoppingList).visibility = View.VISIBLE
                 findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
             }
@@ -51,8 +56,22 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         }
     }
 
+    private fun showHiddenGemsFragment() {
+        findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
+        findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
+
+        findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.VISIBLE
+
+        val hiddenGemsFragment = HiddenGemsFragment()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.hidden_gem_fragment_container, hiddenGemsFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+
     private fun showShoppingListFragment() {
-        findViewById<Button>(R.id.btnFindStores).visibility = View.GONE
+        findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
         findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.VISIBLE

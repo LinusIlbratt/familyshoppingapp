@@ -104,7 +104,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun setupRecyclerView() {
-        recyclerView = view?.findViewById(R.id.recyclerViewLists) ?: return
+        recyclerView = view?.findViewById(R.id.recyclerViewGemList) ?: return
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
 
