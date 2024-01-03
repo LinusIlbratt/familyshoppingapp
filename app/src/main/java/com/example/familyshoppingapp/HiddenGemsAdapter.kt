@@ -34,7 +34,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
             }
             TYPE_ITEM -> {
                 val itemView = inflater.inflate(R.layout.hidden_gem_item, parent, false)
-                ItemViewHolder(itemView, listener)
+                ItemViewHolder(itemView, listener, items)
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -59,7 +59,18 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
         val headerTextView: TextView = view.findViewById(R.id.sectionHeader)
     }
 
-    class ItemViewHolder(view: View, listener: OnHiddenGemClickListener) : RecyclerView.ViewHolder(view) {
+    class ItemViewHolder(view: View, listener: OnHiddenGemClickListener, private val items: List<SectionItem>) : RecyclerView.ViewHolder(view) {
+        init {
+            view.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = items[position]
+                    if (item is SectionItem.Item) {
+                        listener.onHiddenGemClicked(item.hiddenGem)
+                    }
+                }
+            }
+        }
         val titleTextView: TextView = view.findViewById(R.id.hidden_gem_title)
     }
 }
