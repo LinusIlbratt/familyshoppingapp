@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -68,6 +69,11 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
         setupRecyclerView()
         loadUserLists(user.userId)
         invitationListener()
+
+        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
+        backArrow.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
     }
 
     private fun invitationListener() {
@@ -104,7 +110,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun setupRecyclerView() {
-        recyclerView = view?.findViewById(R.id.recyclerViewGemList) ?: return
+        recyclerView = view?.findViewById(R.id.recyclerViewShopList) ?: return
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
 
