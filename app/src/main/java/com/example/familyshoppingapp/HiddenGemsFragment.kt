@@ -14,29 +14,32 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class HiddenGemsFragment : Fragment() {
+class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
     private lateinit var hiddenGemsAdapter: HiddenGemsAdapter
     private lateinit var recyclerView: RecyclerView
     private var firestoreListener: ListenerRegistration? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+        return inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.d("!!!", "onViewCreated called in HiddenGemsFragment")
         recyclerView = view.findViewById(R.id.recyclerViewGemList)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        hiddenGemsAdapter = HiddenGemsAdapter(emptyList(), this)
+        recyclerView.adapter = hiddenGemsAdapter
 
         val fabAddHiddenGem = view.findViewById<FloatingActionButton>(R.id.fab_add_hidden_gem)
         fabAddHiddenGem.setOnClickListener {
             showAddHiddenGemDialog()
         }
-
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        hiddenGemsAdapter = HiddenGemsAdapter(emptyList())
-        recyclerView.adapter = hiddenGemsAdapter
-
-        return view
     }
 
 
@@ -63,7 +66,10 @@ class HiddenGemsFragment : Fragment() {
 
                 val hiddenGemsList = snapshots?.mapNotNull { document ->
                     val hiddenGem = document.toObject(HiddenGem::class.java)
-                    Log.d("HiddenGemsFragment", "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'")
+                    Log.d(
+                        "HiddenGemsFragment",
+                        "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'"
+                    )
                     if (hiddenGem.name.isNullOrEmpty() || hiddenGem.tag.isNullOrEmpty()) {
                         Log.w("HiddenGemsFragment", "Hidden Gem has null or empty name/tag")
                     }
@@ -76,14 +82,12 @@ class HiddenGemsFragment : Fragment() {
     }
 
 
-
     private fun updateRecyclerView(hiddenGemsList: List<HiddenGem>) {
         val sectionItems = createSectionList(hiddenGemsList)
         Log.d("section", "Updating RecyclerView with items: $sectionItems")
         hiddenGemsAdapter.items = sectionItems
         hiddenGemsAdapter.notifyDataSetChanged()
     }
-
 
 
     private fun createSectionList(hiddenGems: List<HiddenGem>): List<SectionItem> {
@@ -109,8 +113,10 @@ class HiddenGemsFragment : Fragment() {
                 .setTitle("Add New Hidden Gem")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Add") { dialog, _ ->
-                    val name = dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
-                    val category = dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
+                    val name =
+                        dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
+                    val category =
+                        dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
 
                     if (name.isNotEmpty() && category.isNotEmpty()) {
                         val newHiddenGem = HiddenGem(name = name, tag = category)
@@ -125,17 +131,30 @@ class HiddenGemsFragment : Fragment() {
 
     private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("hidden_gems")
-            .add(newHiddenGem)
-            .addOnSuccessListener { documentReference ->
-                Log.d("HiddenGemsFragment", "DocumentSnapshot added with ID: ${documentReference.id}")
+        val hiddenGemsCollection = firestore.collection("hidden_gems")
+
+        val newDocumentRef = hiddenGemsCollection.document()
+
+        val updatedHiddenGem = newHiddenGem.copy(id = newDocumentRef.id)
+
+        newDocumentRef.set(updatedHiddenGem)
+            .addOnSuccessListener {
+                Log.d("!!!", "Hidden Gem added with ID: ${newDocumentRef.id}")
             }
             .addOnFailureListener { e ->
-                Log.w("HiddenGemsFragment", "Error adding document", e)
+                Log.w("!!!", "Error adding document", e)
             }
     }
 
 
+    override fun onHiddenGemClicked(hiddenGem: HiddenGem) {
+        Log.d("detail", "Hidden Gem clicked: ${hiddenGem.name}")
+        val detailFragment = HiddenGemDetailFragment.newInstance(hiddenGem)
+        activity?.supportFragmentManager?.beginTransaction()
+            ?.replace(R.id.hidden_gem_fragment_container, detailFragment)
+            ?.addToBackStack(null)
+            ?.commit()
+    }
 
 
 }
