@@ -14,29 +14,28 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class HiddenGemsFragment : Fragment() {
+class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
     private lateinit var hiddenGemsAdapter: HiddenGemsAdapter
     private lateinit var recyclerView: RecyclerView
     private var firestoreListener: ListenerRegistration? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.d("!!!", "onViewCreated called in HiddenGemsFragment")
         recyclerView = view.findViewById(R.id.recyclerViewGemList)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        hiddenGemsAdapter = HiddenGemsAdapter(emptyList(), this)
+        recyclerView.adapter = hiddenGemsAdapter
 
         val fabAddHiddenGem = view.findViewById<FloatingActionButton>(R.id.fab_add_hidden_gem)
         fabAddHiddenGem.setOnClickListener {
             showAddHiddenGemDialog()
         }
-
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        hiddenGemsAdapter = HiddenGemsAdapter(emptyList())
-        recyclerView.adapter = hiddenGemsAdapter
-
-        return view
     }
 
 
@@ -135,6 +134,14 @@ class HiddenGemsFragment : Fragment() {
             }
     }
 
+    override fun onHiddenGemClicked(hiddenGem: HiddenGem) {
+        Log.d("detail", "Hidden Gem clicked: ${hiddenGem.name}")
+        val detailFragment = HiddenGemDetailFragment.newInstance(hiddenGem)
+        activity?.supportFragmentManager?.beginTransaction()
+            ?.replace(R.id.hidden_gem_fragment_container, detailFragment)
+            ?.addToBackStack(null)
+            ?.commit()
+    }
 
 
 

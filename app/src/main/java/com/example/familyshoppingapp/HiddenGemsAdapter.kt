@@ -27,6 +27,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        Log.d("!!!", "onCreateViewHolder called for viewType $viewType")
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             TYPE_HEADER -> {
@@ -42,6 +43,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
 
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        Log.d("!!!", "onBindViewHolder called for position $position")
         when (val item = items[position]) {
             is SectionItem.Header -> (holder as HeaderViewHolder).headerTextView.text = item.title
             is SectionItem.Item -> {
@@ -66,6 +68,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
                 if (position != RecyclerView.NO_POSITION) {
                     val item = items[position]
                     if (item is SectionItem.Item) {
+                        Log.d("detail", "Item clicked: ${item.hiddenGem.name}")
                         listener.onHiddenGemClicked(item.hiddenGem)
                     }
                 }

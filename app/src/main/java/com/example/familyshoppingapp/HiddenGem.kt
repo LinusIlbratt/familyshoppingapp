@@ -1,5 +1,8 @@
 package com.example.familyshoppingapp
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class HiddenGem(
     val name: String = "",
     val description: String = "",
@@ -7,7 +10,4 @@ data class HiddenGem(
     val longitude: Double = 0.0,
     val imageUrl: String? = null,
     val tag: String = ""
-) {
-    // empty constructor for Firebase deserialization
-    constructor() : this("", "", 0.0, 0.0, null, "")
-}
+) : Parcelable
