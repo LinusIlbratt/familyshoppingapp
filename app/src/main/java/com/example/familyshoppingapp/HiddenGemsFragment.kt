@@ -20,7 +20,11 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     private lateinit var recyclerView: RecyclerView
     private var firestoreListener: ListenerRegistration? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_hidden_gems, container, false)
     }
 
@@ -62,7 +66,10 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
                 val hiddenGemsList = snapshots?.mapNotNull { document ->
                     val hiddenGem = document.toObject(HiddenGem::class.java)
-                    Log.d("HiddenGemsFragment", "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'")
+                    Log.d(
+                        "HiddenGemsFragment",
+                        "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'"
+                    )
                     if (hiddenGem.name.isNullOrEmpty() || hiddenGem.tag.isNullOrEmpty()) {
                         Log.w("HiddenGemsFragment", "Hidden Gem has null or empty name/tag")
                     }
@@ -75,14 +82,12 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-
     private fun updateRecyclerView(hiddenGemsList: List<HiddenGem>) {
         val sectionItems = createSectionList(hiddenGemsList)
         Log.d("section", "Updating RecyclerView with items: $sectionItems")
         hiddenGemsAdapter.items = sectionItems
         hiddenGemsAdapter.notifyDataSetChanged()
     }
-
 
 
     private fun createSectionList(hiddenGems: List<HiddenGem>): List<SectionItem> {
@@ -108,8 +113,10 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
                 .setTitle("Add New Hidden Gem")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Add") { dialog, _ ->
-                    val name = dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
-                    val category = dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
+                    val name =
+                        dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
+                    val category =
+                        dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
 
                     if (name.isNotEmpty() && category.isNotEmpty()) {
                         val newHiddenGem = HiddenGem(name = name, tag = category)
@@ -124,15 +131,21 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
     private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("hidden_gems")
-            .add(newHiddenGem)
-            .addOnSuccessListener { documentReference ->
-                Log.d("HiddenGemsFragment", "DocumentSnapshot added with ID: ${documentReference.id}")
+        val hiddenGemsCollection = firestore.collection("hidden_gems")
+
+        val newDocumentRef = hiddenGemsCollection.document()
+
+        val updatedHiddenGem = newHiddenGem.copy(id = newDocumentRef.id)
+
+        newDocumentRef.set(updatedHiddenGem)
+            .addOnSuccessListener {
+                Log.d("!!!", "Hidden Gem added with ID: ${newDocumentRef.id}")
             }
             .addOnFailureListener { e ->
-                Log.w("HiddenGemsFragment", "Error adding document", e)
+                Log.w("!!!", "Error adding document", e)
             }
     }
+
 
     override fun onHiddenGemClicked(hiddenGem: HiddenGem) {
         Log.d("detail", "Hidden Gem clicked: ${hiddenGem.name}")
@@ -142,7 +155,6 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
             ?.addToBackStack(null)
             ?.commit()
     }
-
 
 
 }
