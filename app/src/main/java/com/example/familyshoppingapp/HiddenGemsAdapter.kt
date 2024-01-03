@@ -7,6 +7,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
+interface OnHiddenGemClickListener {
+    fun onHiddenGemClicked(hiddenGem: HiddenGem)
+}
+
 class HiddenGemsAdapter(var items: List<SectionItem>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
