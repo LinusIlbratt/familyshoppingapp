@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
@@ -31,6 +32,11 @@ class HiddenGemDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
+        backArrow.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
 
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
         val descriptionEditText = view.findViewById<EditText>(R.id.detail_description_edit)

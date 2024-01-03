@@ -21,9 +21,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <ImageView
+        android:id="@+id/backArrow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.05"
+        app:layout_constraintWidth_percent="0.1"
+        android:layout_marginStart="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerViewShopList"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/back_arrow" />
+
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewGemList"
+        android:id="@+id/recyclerViewShopList"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"

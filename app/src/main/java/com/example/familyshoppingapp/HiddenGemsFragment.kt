@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +36,11 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         recyclerView.layoutManager = LinearLayoutManager(context)
         hiddenGemsAdapter = HiddenGemsAdapter(emptyList(), this)
         recyclerView.adapter = hiddenGemsAdapter
+
+        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
+        backArrow.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
 
         val fabAddHiddenGem = view.findViewById<FloatingActionButton>(R.id.fab_add_hidden_gem)
         fabAddHiddenGem.setOnClickListener {
