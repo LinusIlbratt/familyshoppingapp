@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 
@@ -28,7 +30,8 @@ class HiddenGemDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
-        view.findViewById<TextView>(R.id.detail_description).text = hiddenGem.description
+        view.findViewById<EditText>(R.id.detail_description_edit)
+        view.findViewById<Button>(R.id.btn_save_desc)
 
     }
 
