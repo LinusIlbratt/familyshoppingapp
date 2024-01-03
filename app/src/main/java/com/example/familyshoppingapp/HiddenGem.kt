@@ -7,8 +7,8 @@ data class HiddenGem(
     val id: String = "",
     val name: String = "",
     var description: String = "Add a description",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
+    var latitude: Double = 0.0,
+    var longitude: Double = 0.0,
     val imageUrl: String? = null,
     val tag: String = ""
 ) : Parcelable

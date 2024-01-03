@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
+import io.grpc.android.BuildConfig
 
 class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
 
