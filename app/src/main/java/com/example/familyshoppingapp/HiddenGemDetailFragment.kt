@@ -16,8 +16,12 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
+import android.content.Intent
 import com.google.android.gms.location.LocationServices
 import android.location.Location
+import android.net.Uri
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.maps.model.LatLng
 
 
 class HiddenGemDetailFragment : Fragment() {
@@ -25,6 +29,7 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var descriptionEditText: EditText
     private lateinit var editButton: Button
     private lateinit var saveButton: Button
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +107,12 @@ class HiddenGemDetailFragment : Fragment() {
         if (saveGpsButton != null) {
             saveGpsButton.setOnClickListener {
                 checkAndRequestLocationPermission()
+            }
+        }
+        val showGpsButton = view?.findViewById<Button>(R.id.btn_show_gps)
+        if (showGpsButton != null) {
+            showGpsButton.setOnClickListener {
+                showDirectionsInGoogleMap()
             }
         }
     }
@@ -210,6 +221,49 @@ class HiddenGemDetailFragment : Fragment() {
                 ).show()
             }
     }
+
+    private fun showDirectionsInGoogleMap() {
+        getCurrentLocation { location ->
+            location?.let { currentLocation ->
+                val destination = LatLng(hiddenGem.latitude, hiddenGem.longitude)
+
+                val intentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin=" +
+                        "${currentLocation.latitude},${currentLocation.longitude}&destination=" +
+                        "${destination.latitude},${destination.longitude}&travelmode=driving")
+
+                val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+
+                if (mapIntent.resolveActivity(requireActivity().packageManager) != null) {
+                    startActivity(mapIntent)
+                } else {
+                    Toast.makeText(context, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT).show()
+                }
+            } ?: run {
+                Toast.makeText(context, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun getCurrentLocation(onLocationReceived: (Location?) -> Unit) {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Hantera fallet där tillstånd inte är beviljat
+            return
+        }
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                // Anropa callback med den erhållna platsen
+                onLocationReceived(location)
+            }
+            .addOnFailureListener {
+                // Hantera eventuellt fel här
+                onLocationReceived(null)
+            }
+    }
+
 
 
     companion object {
