@@ -12,6 +12,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
+import android.location.Location
+import android.widget.Toast
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 
 class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
@@ -21,12 +25,14 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     }
 
     var productAdapterInterface: ProductAdapterInterface? = null
-
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var user: User
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         val bundle = intent.extras
         user = bundle?.getParcelable("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
@@ -43,7 +49,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
-                // Inga fragment i backstack, visa knapparna och dölj fragmentcontainern
+
                 findViewById<Button>(R.id.btn_HiddenGems).visibility = View.VISIBLE
                 findViewById<Button>(R.id.btn_createShoppingList).visibility = View.VISIBLE
                 findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
@@ -135,16 +141,36 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             .commit()
     }
 
-    fun getCurrentLocation() {
+    private fun getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Access is not granted
+            return
+        }
 
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                val parkingLocation = ParkingLocation(it.latitude, it.longitude, System.currentTimeMillis())
+                parkingHero(user, parkingLocation)
+
+            } ?: run {
+
+                Toast.makeText(this, "Could not find the location, please try again", Toast.LENGTH_LONG).show()
+            }
+        }.addOnFailureListener {
+
+            Toast.makeText(this, "An error occurred when trying to get the location.", Toast.LENGTH_LONG).show()
+        }
     }
 
-    fun parkingHero(user: User, parkingLocation: ParkingLocation) {
+
+
+
+    private fun parkingHero(user: User, parkingLocation: ParkingLocation) {
         val userDocument = FirebaseFirestore.getInstance().collection("users").document(user.userId)
 
         userDocument.set(mapOf("parkingLocation" to parkingLocation))
             .addOnSuccessListener {
-                // success
+                Toast.makeText(this, "Your car is parked", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
                 // fail
