@@ -1,12 +1,18 @@
 package com.example.familyshoppingapp
 
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
-import io.grpc.android.BuildConfig
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.firebase.firestore.FirebaseFirestore
+import android.Manifest
+
 
 class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
 
@@ -43,6 +49,25 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
             }
         }
+
+        val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
+        btnSaveGPS.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+                // If access is not granted, ask for it
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_LOCATION)
+            } else {
+                // If access is already granted, continue with getting the position
+                getCurrentLocation()
+            }
+        }
+
+        val btnFindCar = findViewById<Button>(R.id.btn_findCar)
+        btnFindCar.setOnClickListener {
+            Log.d("!!!", "Find Car Button Pressed")
+            // logic
+        }
     }
 
     override fun onBackPressed() {
@@ -56,6 +81,21 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 .show()
         }
     }
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_LOCATION -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+
+                    getCurrentLocation()
+                } else {
+                    // TODO Handle access declined
+                }
+            }
+        }
+    }
+
+
 
     private fun showHiddenGemsFragment() {
         findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
@@ -94,4 +134,25 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             .addToBackStack(null)
             .commit()
     }
+
+    fun getCurrentLocation() {
+
+    }
+
+    fun parkingHero(user: User, parkingLocation: ParkingLocation) {
+        val userDocument = FirebaseFirestore.getInstance().collection("users").document(user.userId)
+
+        userDocument.set(mapOf("parkingLocation" to parkingLocation))
+            .addOnSuccessListener {
+                // success
+            }
+            .addOnFailureListener {
+                // fail
+            }
+    }
+
+    companion object {
+        private const val MY_PERMISSIONS_REQUEST_LOCATION = 1
+    }
+
 }

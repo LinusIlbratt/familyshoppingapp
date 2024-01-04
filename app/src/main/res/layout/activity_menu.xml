@@ -52,11 +52,18 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <Button
-            android:id="@+id/btn_saveGPS"
+            android:id="@+id/btn_saveCarGPS"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="50dp"
+            android:layout_marginStart="100dp"
             android:text="@string/park_car"/>
+
+        <Button
+            android:id="@+id/btn_findCar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="@string/find_car"/>
 
     </LinearLayout>
 
