@@ -3,4 +3,8 @@
     <string name="default_web_client_id">1034724928436-c5gtq90v40e4kdkq019s4m7690517d5g.apps.googleusercontent.com</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="park_car">Park Car</string>
+    <string name="create_new_shoppinglist">Create new shoppinglist</string>
+    <string name="my_hidden_gems">My Hidden Gems</string>
+    <string name="find_car">Find Car</string>
 </resources>

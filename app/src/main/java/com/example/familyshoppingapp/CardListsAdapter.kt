@@ -20,7 +20,7 @@ class CardListsAdapter(
     fun setItems(list: List<ShoppingLists>) {
         items.clear()
         if (list.isEmpty()) {
-            items.add(null) // Lägger till ett tomt kort om listan är tom
+            items.add(null)
         } else {
             items.addAll(list)
         }
@@ -79,9 +79,9 @@ class CardListsAdapter(
         val inviteButton: FloatingActionButton = itemView.findViewById(R.id.inviteButton)
         val addMemberText: TextView = itemView.findViewById(R.id.addMemberText)
         val addSignOnInviteButton: ImageView = itemView.findViewById(R.id.addSignOnInviteBtn)
-        fun bind(shoppingList: ShoppingLists) {
-            // Bind data to your views
-            // Exempel: itemView.textViewName.text = shoppingList.name
-        }
+//        fun bind(shoppingList: ShoppingLists) {
+//            // Bind data to your views
+//
+//        }
     }
 }
