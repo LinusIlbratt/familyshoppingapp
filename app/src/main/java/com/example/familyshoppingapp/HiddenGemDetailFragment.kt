@@ -124,13 +124,13 @@ class HiddenGemDetailFragment : Fragment() {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
 
-            // Tillstånd är inte beviljat, begär det
+
             requestPermissions(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         } else {
-            // Tillstånd är beviljat, fortsätt med att spara GPS-position
+
             saveCurrentLocation()
         }
     }
@@ -143,22 +143,27 @@ class HiddenGemDetailFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Tillstånd beviljades, fortsätt med att spara GPS-position
+
                 saveCurrentLocation()
             } else {
-                // Tillstånd nekades, hantera det (visa en förklaring, etc.)
+
             }
         }
     }
 
     private fun saveCurrentLocation() {
 
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
 
             return
         }
 
-        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireActivity())
 
         fusedLocationProviderClient.lastLocation
             .addOnSuccessListener { location: Location? ->
@@ -186,15 +191,19 @@ class HiddenGemDetailFragment : Fragment() {
 
         hiddenGemsCollection.document(hiddenGem.id).set(hiddenGem)
             .addOnSuccessListener {
-                // Framgångsrik uppsparning
-                Toast.makeText(context, "Hidden Gem updated successfully", Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(context, "Hidden Gem updated successfully", Toast.LENGTH_SHORT)
+                    .show()
             }
             .addOnFailureListener { e ->
-                // Hantering av fel
-                Toast.makeText(context, "Error updating Hidden Gem: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                Toast.makeText(
+                    context,
+                    "Error updating Hidden Gem: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
     }
-
 
 
     private fun saveHiddenGemDesc(hiddenGem: HiddenGem) {
@@ -208,12 +217,12 @@ class HiddenGemDetailFragment : Fragment() {
 
         hiddenGemsCollection.document(hiddenGem.id).set(hiddenGem)
             .addOnSuccessListener {
-                // Framgångsrik uppsparning
+
                 Toast.makeText(context, "Description updated successfully", Toast.LENGTH_SHORT)
                     .show()
             }
             .addOnFailureListener { e ->
-                // Hantering av fel
+
                 Toast.makeText(
                     context,
                     "Error updating description: ${e.message}",
@@ -227,9 +236,11 @@ class HiddenGemDetailFragment : Fragment() {
             location?.let { currentLocation ->
                 val destination = LatLng(hiddenGem.latitude, hiddenGem.longitude)
 
-                val intentUri = Uri.parse("https://www.google.com/maps/dir/?api=1&origin=" +
-                        "${currentLocation.latitude},${currentLocation.longitude}&destination=" +
-                        "${destination.latitude},${destination.longitude}&travelmode=driving")
+                val intentUri = Uri.parse(
+                    "https://www.google.com/maps/dir/?api=1&origin=" +
+                            "${currentLocation.latitude},${currentLocation.longitude}&destination=" +
+                            "${destination.latitude},${destination.longitude}&travelmode=driving"
+                )
 
                 val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
                 mapIntent.setPackage("com.google.android.apps.maps")
@@ -237,17 +248,22 @@ class HiddenGemDetailFragment : Fragment() {
                 if (mapIntent.resolveActivity(requireActivity().packageManager) != null) {
                     startActivity(mapIntent)
                 } else {
-                    Toast.makeText(context, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT)
+                        .show()
                 }
             } ?: run {
-                Toast.makeText(context, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 
     private fun getCurrentLocation(onLocationReceived: (Location?) -> Unit) {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Hantera fallet där tillstånd inte är beviljat
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             return
         }
 
@@ -255,15 +271,14 @@ class HiddenGemDetailFragment : Fragment() {
 
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
-                // Anropa callback med den erhållna platsen
+
                 onLocationReceived(location)
             }
             .addOnFailureListener {
-                // Hantera eventuellt fel här
+
                 onLocationReceived(null)
             }
     }
-
 
 
     companion object {

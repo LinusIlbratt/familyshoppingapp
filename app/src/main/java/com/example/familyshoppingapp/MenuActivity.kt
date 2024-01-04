@@ -12,7 +12,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
+import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.widget.Toast
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -35,7 +37,8 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         val bundle = intent.extras
-        user = bundle?.getParcelable("USER_DATA") ?: throw IllegalStateException("No USER_DATA provided")
+        user = bundle?.getParcelable("USER_DATA")
+            ?: throw IllegalStateException("No USER_DATA provided")
 
         val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
         btnHiddenGem.setOnClickListener {
@@ -58,22 +61,49 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
         val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
         btnSaveGPS.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-                // If access is not granted, ask for it
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    MY_PERMISSIONS_REQUEST_LOCATION)
-            } else {
-                // If access is already granted, continue with getting the position
-                getCurrentLocation()
+            getCurrentLocation { location ->
+                location?.let {
+                    val parkingLocation = ParkingLocation(
+                        user.userId,
+                        it.latitude,
+                        it.longitude,
+                        System.currentTimeMillis()
+                    )
+                    parkingHero(user, parkingLocation)
+                } ?: run {
+                    Toast.makeText(
+                        this,
+                        "Could not find the location, please try again",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
 
+
         val btnFindCar = findViewById<Button>(R.id.btn_findCar)
         btnFindCar.setOnClickListener {
-            Log.d("!!!", "Find Car Button Pressed")
-            // logic
+            FirebaseFirestore.getInstance().collection("parkingLocations")
+                .document(user.userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val parkingLocation = document.toObject(ParkingLocation::class.java)
+                        parkingLocation?.let {
+                            it.latitude?.let { it1 -> it.longitude?.let { it2 ->
+                                showDirectionsInGoogleMap(it1,
+                                    it2
+                                )
+                            } }
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
+                        .show()
+                }
         }
+
     }
 
     override fun onBackPressed() {
@@ -87,20 +117,39 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 .show()
         }
     }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_LOCATION -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-
-                    getCurrentLocation()
+                    // Behörighet beviljad. Anropa getCurrentLocation och gör något med platsen
+                    getCurrentLocation { location ->
+                        location?.let {
+                            // TODO Show the user the saved location on a popup or something?
+                        } ?: run {
+                            Toast.makeText(
+                                this,
+                                "Could not find the location, please try again",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 } else {
-                    // TODO Handle access declined
+
+                    Toast.makeText(
+                        this,
+                        "Location permission is required to use this feature",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
     }
-
 
 
     private fun showHiddenGemsFragment() {
@@ -141,41 +190,80 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             .commit()
     }
 
-    private fun getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Access is not granted
+    private fun getCurrentLocation(callback: (Location?) -> Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Behörighet inte beviljad, hantera detta
+            callback(null)
             return
         }
 
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
-            location?.let {
-                val parkingLocation = ParkingLocation(it.latitude, it.longitude, System.currentTimeMillis())
-                parkingHero(user, parkingLocation)
-
-            } ?: run {
-
-                Toast.makeText(this, "Could not find the location, please try again", Toast.LENGTH_LONG).show()
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                callback(location)
+            } else {
+                Toast.makeText(
+                    this,
+                    "Could not find the location, please try again",
+                    Toast.LENGTH_LONG
+                ).show()
+                callback(null)
             }
         }.addOnFailureListener {
-
-            Toast.makeText(this, "An error occurred when trying to get the location.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "An error occurred when trying to get the location.",
+                Toast.LENGTH_LONG
+            ).show()
+            callback(null)
         }
     }
 
 
-
-
     private fun parkingHero(user: User, parkingLocation: ParkingLocation) {
-        val userDocument = FirebaseFirestore.getInstance().collection("users").document(user.userId)
 
-        userDocument.set(mapOf("parkingLocation" to parkingLocation))
+        val parkingDocument =
+            FirebaseFirestore.getInstance().collection("parkingLocations").document(user.userId)
+
+        parkingDocument.set(parkingLocation)
             .addOnSuccessListener {
                 Toast.makeText(this, "Your car is parked", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                // fail
+                // Hantera misslyckandet att spara platsen
             }
     }
+
+    private fun showDirectionsInGoogleMap(
+        destinationLatitude: Double,
+        destinationLongitude: Double
+    ) {
+        getCurrentLocation { currentLocation ->
+            currentLocation?.let {
+                val intentUri = Uri.parse(
+                    "https://www.google.com/maps/dir/?api=1&origin=" +
+                            "${it.latitude},${it.longitude}&destination=" +
+                            "$destinationLatitude,$destinationLongitude&travelmode=walking"
+                )
+
+                val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+
+                if (mapIntent.resolveActivity(packageManager) != null) {
+                    startActivity(mapIntent)
+                } else {
+                    Toast.makeText(this, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } ?: run {
+                Toast.makeText(this, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     companion object {
         private const val MY_PERMISSIONS_REQUEST_LOCATION = 1

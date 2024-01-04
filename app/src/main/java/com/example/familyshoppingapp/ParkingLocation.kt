@@ -5,7 +5,8 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ParkingLocation(
-    val latitude: Double,
-    val longitude: Double,
-    val timestamp: Long
+    val userId: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val timestamp: Long? = null
 ) : Parcelable
