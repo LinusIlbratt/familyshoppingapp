@@ -87,7 +87,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     }
 
     override fun onListSelected(listId: String, listTitle: String) {
-        // Starta ItemListFragment med vald lista
+
         val itemListFragment = ProductListFragment.newInstance(listId, listTitle)
         supportFragmentManager.beginTransaction()
             .replace(R.id.list_fragment_container, itemListFragment)
