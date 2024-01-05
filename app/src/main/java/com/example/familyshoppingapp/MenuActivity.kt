@@ -36,75 +36,124 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
+        getUserData()
+        initUIComponents()
+        setupBackStackListener()
+    }
+
+    private fun getUserData() {
         val bundle = intent.extras
         user = bundle?.getParcelable("USER_DATA")
             ?: throw IllegalStateException("No USER_DATA provided")
+    }
 
+    private fun initUIComponents() {
+        // add all UI components here
         val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
-        btnHiddenGem.setOnClickListener {
-            showHiddenGemsFragment()
-        }
+        btnHiddenGem.setOnClickListener { showHiddenGemsFragment() }
 
         val btnCreateShoppingList = findViewById<Button>(R.id.btn_createShoppingList)
-        btnCreateShoppingList.setOnClickListener {
-            showShoppingListFragment()
-        }
+        btnCreateShoppingList.setOnClickListener { showShoppingListFragment() }
+
+        val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
+        btnSaveGPS.setOnClickListener { saveParkingLocation() }
+
+        val btnFindCar = findViewById<Button>(R.id.btn_findCar)
+        btnFindCar.setOnClickListener { findParkingLocation() }
+
+    }
+
+    private fun setupBackStackListener() {
+        val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
+        val btnCreateShoppingList = findViewById<Button>(R.id.btn_createShoppingList)
+        val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
 
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
-
-                findViewById<Button>(R.id.btn_HiddenGems).visibility = View.VISIBLE
-                findViewById<Button>(R.id.btn_createShoppingList).visibility = View.VISIBLE
-                findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
+                btnHiddenGem.visibility = View.VISIBLE
+                btnCreateShoppingList.visibility = View.VISIBLE
+                listFragmentContainer.visibility = View.GONE
             }
         }
-
-        val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
-        btnSaveGPS.setOnClickListener {
-            getCurrentLocation { location ->
-                location?.let {
-                    val parkingLocation = ParkingLocation(
-                        user.userId,
-                        it.latitude,
-                        it.longitude,
-                        System.currentTimeMillis()
-                    )
-                    parkingHero(user, parkingLocation)
-                } ?: run {
-                    Toast.makeText(
-                        this,
-                        "Could not find the location, please try again",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-        }
-
-
-        val btnFindCar = findViewById<Button>(R.id.btn_findCar)
-        btnFindCar.setOnClickListener {
-            FirebaseFirestore.getInstance().collection("parkingLocations")
-                .document(user.userId)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val parkingLocation = document.toObject(ParkingLocation::class.java)
-                        parkingLocation?.let {
-                            it.latitude?.let { it1 -> it.longitude?.let { it2 ->
-                                showDirectionsInGoogleMap(it1,
-                                    it2
-                                )
-                            } }
-                        }
-                    }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
-                        .show()
-                }
-        }
-
     }
+
+
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setContentView(R.layout.activity_menu)
+//
+//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+//
+//        val bundle = intent.extras
+//        user = bundle?.getParcelable("USER_DATA")
+//            ?: throw IllegalStateException("No USER_DATA provided")
+//
+//        val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
+//        btnHiddenGem.setOnClickListener {
+//            showHiddenGemsFragment()
+//        }
+//
+//        val btnCreateShoppingList = findViewById<Button>(R.id.btn_createShoppingList)
+//        btnCreateShoppingList.setOnClickListener {
+//            showShoppingListFragment()
+//        }
+//
+//        val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
+//
+//        supportFragmentManager.addOnBackStackChangedListener {
+//            if (supportFragmentManager.backStackEntryCount == 0) {
+//                btnHiddenGem.visibility = View.VISIBLE
+//                btnCreateShoppingList.visibility = View.VISIBLE
+//                listFragmentContainer.visibility = View.GONE
+//            }
+//        }
+//
+//        val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
+//        btnSaveGPS.setOnClickListener {
+//            getCurrentLocation { location ->
+//                location?.let {
+//                    val parkingLocation = ParkingLocation(
+//                        user.userId,
+//                        it.latitude,
+//                        it.longitude,
+//                        System.currentTimeMillis()
+//                    )
+//                    parkingHero(user, parkingLocation)
+//                } ?: run {
+//                    Toast.makeText(
+//                        this,
+//                        "Could not find the location, please try again",
+//                        Toast.LENGTH_LONG
+//                    ).show()
+//                }
+//            }
+//        }
+//
+//
+//        val btnFindCar = findViewById<Button>(R.id.btn_findCar)
+//        btnFindCar.setOnClickListener {
+//            FirebaseFirestore.getInstance().collection("parkingLocations")
+//                .document(user.userId)
+//                .get()
+//                .addOnSuccessListener { document ->
+//                    if (document.exists()) {
+//                        val parkingLocation = document.toObject(ParkingLocation::class.java)
+//                        parkingLocation?.let {
+//                            it.latitude?.let { it1 -> it.longitude?.let { it2 ->
+//                                showDirectionsInGoogleMap(it1,
+//                                    it2
+//                                )
+//                            } }
+//                        }
+//                    }
+//                }
+//                .addOnFailureListener {
+//                    Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
+//                        .show()
+//                }
+//        }
+//
+//    }
 
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
@@ -220,6 +269,48 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             ).show()
             callback(null)
         }
+    }
+
+    private fun saveParkingLocation() {
+        getCurrentLocation { location ->
+            location?.let {
+                val parkingLocation = ParkingLocation(
+                    user.userId,
+                    it.latitude,
+                    it.longitude,
+                    System.currentTimeMillis()
+                )
+                parkingHero(user, parkingLocation)
+            } ?: run {
+                Toast.makeText(
+                    this,
+                    "Could not find the location, please try again",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun findParkingLocation() {
+        FirebaseFirestore.getInstance().collection("parkingLocations")
+            .document(user.userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val parkingLocation = document.toObject(ParkingLocation::class.java)
+                    parkingLocation?.let {
+                        it.latitude?.let { it1 ->
+                            it.longitude?.let { it2 ->
+                                showDirectionsInGoogleMap(it1, it2)
+                            }
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
+                    .show()
+            }
     }
 
 
