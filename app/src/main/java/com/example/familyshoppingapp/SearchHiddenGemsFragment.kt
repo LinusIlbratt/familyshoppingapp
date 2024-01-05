@@ -5,13 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SearchHiddenGemsFragment : Fragment() {
 
-    // Andra variabler och funktioner
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: SearchHiddenGemsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,18 +26,17 @@ class SearchHiddenGemsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val searchView = view.findViewById<SearchView>(R.id.search_view)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView_search_results)
 
-        val adapter = SearchHiddenGemsAdapter(emptyList())
+        recyclerView = view.findViewById(R.id.recyclerView_search_results)
+        adapter = SearchHiddenGemsAdapter(emptyList())
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
+        val searchView = view.findViewById<SearchView>(R.id.search_view)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
-                    // Här kan du anropa din sökfunktion och uppdatera adaptern
-                    //adapter.updateData(sökresultaten)
+                    searchHiddenGems(it)
                 }
                 return true
             }
@@ -47,8 +49,32 @@ class SearchHiddenGemsFragment : Fragment() {
 
 
     private fun searchHiddenGems(query: String) {
-        // Hämta data från Firestore baserat på query
-        // Exempel: Firestore-db.collection("hidden_gems").whereEqualTo("tag", query).get()...
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("hidden_gems")
+            .whereArrayContainsAny(
+                "tags",
+                listOf(query)
+            ) // Använder en lista för att möjliggöra framtida utökningar
+            .get()
+            .addOnSuccessListener { documents ->
+                val searchResults = documents.mapNotNull { document ->
+                    document.toObject(HiddenGem::class.java)
+                }
+                updateRecyclerView(searchResults)
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Sökningen misslyckades: ${e.message}", Toast.LENGTH_LONG)
+                    .show()
+            }
     }
+
+    private fun updateRecyclerView(newHiddenGems: List<HiddenGem>) {
+        if (newHiddenGems.isEmpty()) {
+            Toast.makeText(context, "Inga resultat hittades.", Toast.LENGTH_LONG).show()
+        } else {
+            adapter.updateData(newHiddenGems)
+        }
+    }
+
 }
 
