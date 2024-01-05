@@ -30,6 +30,8 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var editButton: Button
     private lateinit var saveButton: Button
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var shareButton: Button
+    private lateinit var stopSharingButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,12 +56,16 @@ class HiddenGemDetailFragment : Fragment() {
 
         initViews(view)
         setupListeners()
+        loadAndSetHiddenGemSharingStatus()
     }
 
 
     private fun initViews(view: View) {
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
+
+        shareButton = view.findViewById(R.id.btn_share_public)
+        stopSharingButton = view.findViewById(R.id.btn_stop_sharing_public)
 
         descriptionEditText = view.findViewById(R.id.detail_description_edit)
         editButton = view.findViewById(R.id.btn_edit_desc)
@@ -115,7 +121,36 @@ class HiddenGemDetailFragment : Fragment() {
                 showDirectionsInGoogleMap()
             }
         }
+
+        shareButton.setOnClickListener {
+            toggleHiddenGemSharing(true)
+        }
+
+        stopSharingButton.setOnClickListener {
+            toggleHiddenGemSharing(false)
+        }
     }
+
+    private fun loadAndSetHiddenGemSharingStatus() {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("hidden_gems").document(hiddenGem.id)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val updatedHiddenGem = document.toObject(HiddenGem::class.java)
+                    updatedHiddenGem?.let {
+                        it.isShared = document.getBoolean("isShared") ?: false
+                        this.hiddenGem = it
+                        updateButtonsBasedOnSharingStatus(hiddenGem.isShared)
+                        Log.d("HiddenGemDetailFragment", "Loaded HiddenGem isShared status: ${hiddenGem.isShared}")
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("HiddenGemDetailFragment", "Error loading Hidden Gem details", e)
+            }
+    }
+
 
     private fun checkAndRequestLocationPermission() {
         if (ContextCompat.checkSelfPermission(
@@ -278,6 +313,34 @@ class HiddenGemDetailFragment : Fragment() {
 
                 onLocationReceived(null)
             }
+    }
+
+
+    private fun toggleHiddenGemSharing(shouldBeShared: Boolean) {
+        hiddenGem.isShared = shouldBeShared
+
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("hidden_gems").document(hiddenGem.id)
+            .update("isShared", shouldBeShared)
+            .addOnSuccessListener {
+                updateButtonsBasedOnSharingStatus(shouldBeShared)
+                val message = if (shouldBeShared) "Delas nu publikt!" else "Slutar dela publikt."
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Kunde inte uppdatera: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    private fun updateButtonsBasedOnSharingStatus(isShared: Boolean) {
+        if (isShared) {
+            shareButton.visibility = View.GONE
+            stopSharingButton.visibility = View.VISIBLE
+        } else {
+            shareButton.visibility = View.VISIBLE
+            stopSharingButton.visibility = View.GONE
+        }
     }
 
 

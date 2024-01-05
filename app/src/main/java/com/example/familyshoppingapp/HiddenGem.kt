@@ -10,5 +10,11 @@ data class HiddenGem(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     val imageUrl: String? = null,
-    val tag: String = ""
+    val tag: String = "",
+    var isShared: Boolean = false,
+    val createdBy: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
+    val tags: List<String> = listOf(),
+    var rating: Float = 0.0f,
+    var visitCount: Int = 0
 ) : Parcelable
