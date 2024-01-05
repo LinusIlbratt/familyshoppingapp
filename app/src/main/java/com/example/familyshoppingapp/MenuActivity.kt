@@ -1,23 +1,21 @@
 package com.example.familyshoppingapp
 
+import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
-import androidx.appcompat.app.AlertDialog
-import android.util.Log
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.google.firebase.firestore.FirebaseFirestore
-import android.Manifest
-import android.content.Intent
-import android.location.Location
-import android.net.Uri
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
@@ -36,10 +34,19 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
+        getUserData()
+        initUIComponents()
+        setupBackStackListener()
+    }
+
+    private fun getUserData() {
         val bundle = intent.extras
         user = bundle?.getParcelable("USER_DATA")
             ?: throw IllegalStateException("No USER_DATA provided")
+    }
 
+    private fun initUIComponents() {
+        // add all UI components here
         val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
         btnHiddenGem.setOnClickListener {
             showHiddenGemsFragment()
@@ -50,61 +57,39 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             showShoppingListFragment()
         }
 
-        supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-
-                findViewById<Button>(R.id.btn_HiddenGems).visibility = View.VISIBLE
-                findViewById<Button>(R.id.btn_createShoppingList).visibility = View.VISIBLE
-                findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.GONE
-            }
-        }
-
         val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
         btnSaveGPS.setOnClickListener {
-            getCurrentLocation { location ->
-                location?.let {
-                    val parkingLocation = ParkingLocation(
-                        user.userId,
-                        it.latitude,
-                        it.longitude,
-                        System.currentTimeMillis()
-                    )
-                    parkingHero(user, parkingLocation)
-                } ?: run {
-                    Toast.makeText(
-                        this,
-                        "Could not find the location, please try again",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
+            saveParkingLocation()
         }
-
 
         val btnFindCar = findViewById<Button>(R.id.btn_findCar)
         btnFindCar.setOnClickListener {
-            FirebaseFirestore.getInstance().collection("parkingLocations")
-                .document(user.userId)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val parkingLocation = document.toObject(ParkingLocation::class.java)
-                        parkingLocation?.let {
-                            it.latitude?.let { it1 -> it.longitude?.let { it2 ->
-                                showDirectionsInGoogleMap(it1,
-                                    it2
-                                )
-                            } }
-                        }
-                    }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
-                        .show()
-                }
+            findParkingLocation()
+        }
+
+        val btnFindHiddenGem = findViewById<Button>(R.id.btn_findHiddenGems)
+        btnFindHiddenGem.setOnClickListener {
+            showSearchHiddenGemsFragment()
         }
 
     }
+
+    private fun setupBackStackListener() {
+        val btnHiddenGem = findViewById<Button>(R.id.btn_HiddenGems)
+        val btnCreateShoppingList = findViewById<Button>(R.id.btn_createShoppingList)
+        val btnFindHiddenGem = findViewById<Button>(R.id.btn_findHiddenGems)
+        val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                btnHiddenGem.visibility = View.VISIBLE
+                btnCreateShoppingList.visibility = View.VISIBLE
+                btnFindHiddenGem.visibility = View.VISIBLE
+                listFragmentContainer.visibility = View.GONE
+            }
+        }
+    }
+
 
     override fun onBackPressed() {
         if (supportFragmentManager.backStackEntryCount > 0) {
@@ -155,6 +140,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     private fun showHiddenGemsFragment() {
         findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
         findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
+        findViewById<Button>(R.id.btn_findHiddenGems).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.VISIBLE
 
@@ -169,14 +155,29 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     private fun showShoppingListFragment() {
         findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
         findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
+        findViewById<Button>(R.id.btn_findHiddenGems).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.VISIBLE
 
-        val fragment = ShoppingListFragment.newInstance(user).also {
+        val shoppingListFragment = ShoppingListFragment.newInstance(user).also {
             it.setOnListSelectedListener(this)
         }
         supportFragmentManager.beginTransaction()
-            .replace(R.id.list_fragment_container, fragment)
+            .replace(R.id.list_fragment_container, shoppingListFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun showSearchHiddenGemsFragment() {
+        findViewById<Button>(R.id.btn_HiddenGems).visibility = View.GONE
+        findViewById<Button>(R.id.btn_createShoppingList).visibility = View.GONE
+        findViewById<Button>(R.id.btn_findHiddenGems).visibility = View.GONE
+
+        findViewById<FrameLayout>(R.id.search_gem_fragment_container).visibility = View.VISIBLE
+
+        val searchHiddenGemsFragment = SearchHiddenGemsFragment()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.search_gem_fragment_container, searchHiddenGemsFragment)
             .addToBackStack(null)
             .commit()
     }
@@ -220,6 +221,48 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             ).show()
             callback(null)
         }
+    }
+
+    private fun saveParkingLocation() {
+        getCurrentLocation { location ->
+            location?.let {
+                val parkingLocation = ParkingLocation(
+                    user.userId,
+                    it.latitude,
+                    it.longitude,
+                    System.currentTimeMillis()
+                )
+                parkingHero(user, parkingLocation)
+            } ?: run {
+                Toast.makeText(
+                    this,
+                    "Could not find the location, please try again",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun findParkingLocation() {
+        FirebaseFirestore.getInstance().collection("parkingLocations")
+            .document(user.userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val parkingLocation = document.toObject(ParkingLocation::class.java)
+                    parkingLocation?.let {
+                        it.latitude?.let { it1 ->
+                            it.longitude?.let { it2 ->
+                                showDirectionsInGoogleMap(it1, it2)
+                            }
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to retrieve parking location", Toast.LENGTH_SHORT)
+                    .show()
+            }
     }
 
 
