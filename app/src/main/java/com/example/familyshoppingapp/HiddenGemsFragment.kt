@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -114,26 +115,26 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
 
         val builder = context?.let { AlertDialog.Builder(it) }
-        if (builder != null) {
-            builder.setView(dialogView)
+        builder?.apply {
+            setView(dialogView)
                 .setTitle("Add New Hidden Gem")
-                .setNegativeButton("Cancel", null)
                 .setPositiveButton("Add") { dialog, _ ->
-                    val name =
-                        dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
-                    val category =
-                        dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
+                    val name = dialogView.findViewById<EditText>(R.id.titel_name).text.toString().trim()
+                    val category = dialogView.findViewById<EditText>(R.id.category_name).text.toString().trim()
+                    val tagsInput = dialogView.findViewById<EditText>(R.id.tags_input).text.toString().trim()
 
-                    if (name.isNotEmpty() && category.isNotEmpty()) {
-                        val newHiddenGem = HiddenGem(name = name, tag = category)
+                    if (name.isNotEmpty() && category.isNotEmpty() && tagsInput.isNotEmpty()) {
+                        val tagsList = tagsInput.split(",").map { it.trim() }
+                        val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList)
                         addNewHiddenGemToFirestore(newHiddenGem)
+                    } else {
+                        Toast.makeText(context, "All fields are required, including at least one tag", Toast.LENGTH_LONG).show()
                     }
                 }
         }
-        if (builder != null) {
-            builder.create().show()
-        }
+        builder?.create()?.show()
     }
+
 
     private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem) {
         val firestore = FirebaseFirestore.getInstance()
