@@ -29,6 +29,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentManager
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.storage.FirebaseStorage
@@ -75,6 +76,9 @@ class HiddenGemDetailFragment : Fragment() {
         initViews(view)
         setupListeners()
         loadAndSetHiddenGemSharingStatus()
+        hiddenGem.imageUrl?.let {
+            uploadImageIntoPhotoHolder(it)
+        }
 
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -286,16 +290,26 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun updateHiddenGemImageInFirestore(imageUri: String) {
-        val hiddenGemId = hiddenGem.id  // Hämtar ID:t från ditt befintliga objekt
+        val hiddenGemId = hiddenGem.id
 
-        val firestoreRef = FirebaseFirestore.getInstance().collection("hidden_gems").document(hiddenGemId)
+        val firestoreRef = FirebaseFirestore.getInstance()
+            .collection("hidden_gems")
+            .document(hiddenGemId)
+
         firestoreRef.update("imageUrl", imageUri).addOnSuccessListener {
-            // Uppdateringen lyckades
+            uploadImageIntoPhotoHolder(imageUri)
             Toast.makeText(context, "Image updated successfully", Toast.LENGTH_SHORT).show()
+            uploadImageIntoPhotoHolder(imageUri)
         }.addOnFailureListener {
-            // Uppdateringen misslyckades
+
             Toast.makeText(context, "Failed to update image", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun uploadImageIntoPhotoHolder(imageUri: String) {
+        Glide.with(this)
+            .load(imageUri)
+            .into(photoHolder)
     }
 
 
