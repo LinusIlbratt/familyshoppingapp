@@ -14,4 +14,5 @@
     <string name="ultimate_shopping_app">Ultimate Shopping App</string>
     <string name="navigate_explore_connect"><![CDATA[Navigate, Explore & Connect]]></string>
     <string name="welcome_to_the">Welcome to the</string>
+    <string name="sign_in_with_google_button">Sign In with Google</string>
 </resources>
