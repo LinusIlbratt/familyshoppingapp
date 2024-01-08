@@ -16,10 +16,13 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import com.google.android.gms.location.LocationServices
 import android.location.Location
 import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
@@ -33,6 +36,8 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var shareButton: Button
     private lateinit var stopSharingButton: Button
+    private lateinit var photoHolder: ImageView
+    private lateinit var permissionLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,10 +62,20 @@ class HiddenGemDetailFragment : Fragment() {
         initViews(view)
         setupListeners()
         loadAndSetHiddenGemSharingStatus()
+
+        permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                // Kameratillstånd beviljades
+            } else {
+                // Kameratillstånd nekades
+            }
+        }
     }
 
 
     private fun initViews(view: View) {
+
+        photoHolder = view.findViewById(R.id.hidden_gem_detail_photoHolder)
 
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
 
@@ -84,6 +99,11 @@ class HiddenGemDetailFragment : Fragment() {
     }
 
     private fun setupListeners() {
+
+        photoHolder.setOnClickListener {
+            onPhotoHolderClicked()
+        }
+
         editButton.setOnClickListener {
             descriptionEditText.background =
                 ResourcesCompat.getDrawable(resources, R.drawable.edit_text_background, null)
@@ -150,6 +170,36 @@ class HiddenGemDetailFragment : Fragment() {
             .addOnFailureListener { e ->
                 Log.e("HiddenGemDetailFragment", "Error loading Hidden Gem details", e)
             }
+    }
+
+    private fun onPhotoHolderClicked() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            // Permission already granted
+            showPhotoHolderDialogPopup()
+        } else {
+            // Ask for permission
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun showPhotoHolderDialogPopup() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.photo_holder_dialog_popup, null)
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .create()
+
+        // Handle click on symbols
+        val openGallery = dialogView.findViewById<ImageView>(R.id.open_gallery_icon)
+        openGallery.setOnClickListener {
+
+        }
+
+        val openCamera = dialogView.findViewById<ImageView>(R.id.open_camera_icon)
+        openCamera.setOnClickListener {
+
+        }
+
+        dialog.show()
     }
 
 
@@ -347,13 +397,12 @@ class HiddenGemDetailFragment : Fragment() {
 
     companion object {
         const val HIDDEN_GEM = "hidden_gem"
-        private const val IS_EDITABLE = "is_editable"
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        private const val CAMERA_PERMISSION_REQUEST_CODE = 101
 
         fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): HiddenGemDetailFragment {
             val args = Bundle().apply {
                 putParcelable(HIDDEN_GEM, hiddenGem)
-                putBoolean(IS_EDITABLE, isEditable)
             }
             return HiddenGemDetailFragment().apply {
                 arguments = args
