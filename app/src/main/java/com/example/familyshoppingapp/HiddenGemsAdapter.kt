@@ -4,11 +4,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 interface OnHiddenGemClickListener {
     fun onHiddenGemClicked(hiddenGem: HiddenGem)
+    fun onRemoveIconClicked(hiddenGem: HiddenGem)
 }
 
 class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHiddenGemClickListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -62,6 +64,8 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
     }
 
     class ItemViewHolder(view: View, listener: OnHiddenGemClickListener, private val items: List<SectionItem>) : RecyclerView.ViewHolder(view) {
+        val titleTextView: TextView = view.findViewById(R.id.hidden_gem_title)
+        val removeIcon: ImageButton = view.findViewById(R.id.remove_icon)
         init {
             view.setOnClickListener {
                 val position = adapterPosition
@@ -73,8 +77,17 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
                     }
                 }
             }
+
+            removeIcon.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = items[position]
+                    if (item is SectionItem.Item) {
+                        listener.onRemoveIconClicked(item.hiddenGem)
+                    }
+                }
+            }
         }
-        val titleTextView: TextView = view.findViewById(R.id.hidden_gem_title)
     }
 }
 
