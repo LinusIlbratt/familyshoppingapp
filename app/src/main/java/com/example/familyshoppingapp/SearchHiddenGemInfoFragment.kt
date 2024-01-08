@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract.CommonDataKinds.Im
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -47,7 +48,6 @@ class SearchHiddenGemInfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Lägg till en Log för att visa antalet fragment i backstacken
         val fragmentManager = parentFragmentManager
         val fragmentBackstackCount = fragmentManager.backStackEntryCount
 
@@ -57,12 +57,14 @@ class SearchHiddenGemInfoFragment : Fragment() {
             Log.d("FragmentBackstack", "Fragment at position $i: $fragmentName")
         }
 
-        // Övrig kod för att initiera vyer och lyssnare
+
         initViews(view)
         setupListeners()
     }
 
     private fun initViews(view: View) {
+        val photoHolder = view.findViewById<ImageView>(R.id.hidden_gem_detail_photoHolder)
+
         val titleTextView = view.findViewById<TextView>(R.id.detail_titel)
         titleTextView.text = hiddenGem.name
 

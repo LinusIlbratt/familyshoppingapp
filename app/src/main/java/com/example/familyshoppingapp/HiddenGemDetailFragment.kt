@@ -76,6 +76,7 @@ class HiddenGemDetailFragment : Fragment() {
         initViews(view)
         setupListeners()
         loadAndSetHiddenGemSharingStatus()
+
         hiddenGem.imageUrl?.let {
             uploadImageIntoPhotoHolder(it)
         }
@@ -282,11 +283,13 @@ class HiddenGemDetailFragment : Fragment() {
             snapshot.storage.downloadUrl.addOnSuccessListener { downloadUrl ->
                 val newImageUrl = downloadUrl.toString()
                 updateHiddenGemImageInFirestore(newImageUrl)
+                uploadImageIntoPhotoHolder(newImageUrl)
             }
         }.addOnFailureListener {
             // Hantera misslyckad uppladdning
         }
     }
+
 
 
     private fun updateHiddenGemImageInFirestore(imageUri: String) {
@@ -297,14 +300,14 @@ class HiddenGemDetailFragment : Fragment() {
             .document(hiddenGemId)
 
         firestoreRef.update("imageUrl", imageUri).addOnSuccessListener {
+            hiddenGem.imageUrl = imageUri
             uploadImageIntoPhotoHolder(imageUri)
             Toast.makeText(context, "Image updated successfully", Toast.LENGTH_SHORT).show()
-            uploadImageIntoPhotoHolder(imageUri)
         }.addOnFailureListener {
-
             Toast.makeText(context, "Failed to update image", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     private fun uploadImageIntoPhotoHolder(imageUri: String) {
         Glide.with(this)

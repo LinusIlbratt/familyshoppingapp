@@ -9,7 +9,7 @@ data class HiddenGem(
     var description: String = "Add a description",
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
-    val imageUrl: String? = null,
+    var imageUrl: String? = null,
     val tag: String = "",
     var isShared: Boolean = false,
     val createdBy: String = "",
