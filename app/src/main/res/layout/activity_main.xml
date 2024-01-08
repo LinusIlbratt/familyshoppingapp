@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:fontFamily="@font/poppins_bold_italic"
-        android:text="Welcome to the"
+        android:text="@string/welcome_to_the"
         android:textColor="#403115"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
