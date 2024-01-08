@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -74,6 +75,12 @@ class SearchHiddenGemInfoFragment : Fragment() {
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        hiddenGem.imageUrl?.let { imageUrl ->
+            Glide.with(this)
+                .load(imageUrl)
+                .into(photoHolder)
         }
     }
 
