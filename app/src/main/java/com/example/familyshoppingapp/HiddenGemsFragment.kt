@@ -164,6 +164,21 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
     override fun onRemoveIconClicked(hiddenGem: HiddenGem) {
+        showDeleteDialog(hiddenGem)
+    }
+
+    private fun showDeleteDialog(hiddenGem: HiddenGem) {
+        AlertDialog.Builder(requireActivity())
+            .setTitle("Delete List")
+            .setMessage("Are you sure you want to delete your hidden gem '${hiddenGem.name}'?")
+            .setPositiveButton("Delete") { dialog, which ->
+                deleteHiddenGem(hiddenGem)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteHiddenGem(hiddenGem: HiddenGem) {
         val firestore = FirebaseFirestore.getInstance()
         val hiddenGemsCollection = firestore.collection("hidden_gems")
 
