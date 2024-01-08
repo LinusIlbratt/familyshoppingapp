@@ -20,6 +20,7 @@ import android.content.Intent
 import com.google.android.gms.location.LocationServices
 import android.location.Location
 import android.net.Uri
+import androidx.fragment.app.FragmentManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 
@@ -35,7 +36,6 @@ class HiddenGemDetailFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("detail", "onCreate called")
         arguments?.let {
             hiddenGem = it.getParcelable(HIDDEN_GEM)
                 ?: throw IllegalArgumentException("Hidden Gem is required")
@@ -61,7 +61,7 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun initViews(view: View) {
-        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
+
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
 
         shareButton = view.findViewById(R.id.btn_share_public)
@@ -77,6 +77,7 @@ class HiddenGemDetailFragment : Fragment() {
         descriptionEditText.isFocusableInTouchMode = false
         descriptionEditText.isCursorVisible = false
 
+        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -345,12 +346,14 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     companion object {
-        private const val HIDDEN_GEM = "hidden_gem"
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        const val HIDDEN_GEM = "hidden_gem"
+        private const val IS_EDITABLE = "is_editable"
+        const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-        fun newInstance(hiddenGem: HiddenGem): HiddenGemDetailFragment {
+        fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): HiddenGemDetailFragment {
             val args = Bundle().apply {
                 putParcelable(HIDDEN_GEM, hiddenGem)
+                putBoolean(IS_EDITABLE, isEditable)
             }
             return HiddenGemDetailFragment().apply {
                 arguments = args

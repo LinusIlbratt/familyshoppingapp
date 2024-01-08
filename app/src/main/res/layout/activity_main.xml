@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:fontFamily="@font/poppins_bold_italic"
-        android:text="Welcome to the"
+        android:text="@string/welcome_to_the"
         android:textColor="#403115"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -65,13 +65,13 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/familyShoppingText"
+        android:id="@+id/shoppingAppTitel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="15dp"
         android:fontFamily="@font/poppins_bold_italic"
         android:gravity="center"
-        android:text="Family Shopping"
+        android:text="@string/ultimate_shopping_app"
         android:textColor="#403115"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -85,10 +85,10 @@
         android:layout_marginTop="15dp"
         android:fontFamily="@font/poppins_bold_italic"
         android:gravity="center"
-        android:text="App"
+        android:text="@string/navigate_explore_connect"
         android:textColor="#403115"
-        android:textSize="26sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/familyShoppingText" />
+        app:layout_constraintTop_toBottomOf="@+id/shoppingAppTitel" />
 </androidx.constraintlayout.widget.ConstraintLayout>

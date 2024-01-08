@@ -174,6 +174,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         findViewById<Button>(R.id.btn_findHiddenGems).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.search_gem_fragment_container).visibility = View.VISIBLE
+        findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.GONE
 
         val searchHiddenGemsFragment = SearchHiddenGemsFragment()
         supportFragmentManager.beginTransaction()

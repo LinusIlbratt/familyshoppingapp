@@ -1,9 +1,11 @@
 package com.example.familyshoppingapp
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -27,8 +29,18 @@ class SearchHiddenGemsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val onItemClicked: (HiddenGem) -> Unit = { hiddenGem ->
+            Log.d("!!!", "Item clicked: ${hiddenGem.name}")
+            openSearchHiddenGemsFragment(hiddenGem)
+        }
+
+        val backArrow = view.findViewById<ImageView>(R.id.backArrow)
+        backArrow.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         recyclerView = view.findViewById(R.id.recyclerView_search_results)
-        adapter = SearchHiddenGemsAdapter(emptyList())
+        adapter = SearchHiddenGemsAdapter(emptyList(), onItemClicked)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
@@ -45,6 +57,10 @@ class SearchHiddenGemsFragment : Fragment() {
                 return false
             }
         })
+        adapter = SearchHiddenGemsAdapter(emptyList()) { hiddenGem ->
+            openSearchHiddenGemsFragment(hiddenGem)
+        }
+        recyclerView.adapter = adapter
     }
 
 
@@ -54,7 +70,7 @@ class SearchHiddenGemsFragment : Fragment() {
             .whereArrayContainsAny(
                 "tags",
                 listOf(query)
-            ) // Använder en lista för att möjliggöra framtida utökningar
+            )
             .get()
             .addOnSuccessListener { documents ->
                 val searchResults = documents.mapNotNull { document ->
@@ -67,6 +83,17 @@ class SearchHiddenGemsFragment : Fragment() {
                     .show()
             }
     }
+
+    private fun openSearchHiddenGemsFragment(hiddenGem: HiddenGem) {
+        val detailFragment = SearchHiddenGemInfoFragment.newInstance(hiddenGem)
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.search_gem_fragment_container, detailFragment)
+            .addToBackStack(null)  // Lägg till i backstacken
+            .commit()
+    }
+
+
 
     private fun updateRecyclerView(newHiddenGems: List<HiddenGem>) {
         if (newHiddenGems.isEmpty()) {
