@@ -16,13 +16,27 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
+import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
+import android.icu.text.SimpleDateFormat
 import com.google.android.gms.location.LocationServices
 import android.location.Location
 import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentManager
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 
 class HiddenGemDetailFragment : Fragment() {
@@ -33,6 +47,11 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var shareButton: Button
     private lateinit var stopSharingButton: Button
+    private lateinit var photoHolder: ImageView
+    private lateinit var permissionLauncher: ActivityResultLauncher<String>
+    private lateinit var userDeviceStorage: ActivityResultLauncher<String>
+    private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
+    private var tempImageHolder: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,10 +76,40 @@ class HiddenGemDetailFragment : Fragment() {
         initViews(view)
         setupListeners()
         loadAndSetHiddenGemSharingStatus()
+
+        hiddenGem.imageUrl?.let {
+            uploadImageIntoPhotoHolder(it)
+        }
+
+        permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                // Kameratillstånd beviljades
+            } else {
+                // Kameratillstånd nekades
+            }
+        }
+
+        userDeviceStorage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            // Handle users image
+            if (uri != null) {
+                uploadImageToFirestore(uri)
+            }
+        }
+
+        startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                tempImageHolder?.let { uri ->
+                    uploadImageToFirestore(uri)
+                }
+            }
+        }
+
     }
 
 
     private fun initViews(view: View) {
+
+        photoHolder = view.findViewById(R.id.hidden_gem_detail_photoHolder)
 
         view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
 
@@ -84,6 +133,11 @@ class HiddenGemDetailFragment : Fragment() {
     }
 
     private fun setupListeners() {
+
+        photoHolder.setOnClickListener {
+            onPhotoHolderClicked()
+        }
+
         editButton.setOnClickListener {
             descriptionEditText.background =
                 ResourcesCompat.getDrawable(resources, R.drawable.edit_text_background, null)
@@ -152,6 +206,115 @@ class HiddenGemDetailFragment : Fragment() {
             }
     }
 
+    private fun onPhotoHolderClicked() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            // Permission already granted
+            showPhotoHolderDialogPopup()
+        } else {
+            // Ask for permission
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+            startCamera()
+        }
+    }
+
+    private fun showPhotoHolderDialogPopup() {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.photo_holder_dialog_popup, null)
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .create()
+
+        // Handle click on symbols
+        val openGallery = dialogView.findViewById<ImageView>(R.id.open_gallery_icon)
+        openGallery.setOnClickListener {
+            // Let the user choose image from the device storage
+            userDeviceStorage.launch("image/*")
+        }
+
+        val openCamera = dialogView.findViewById<ImageView>(R.id.open_camera_icon)
+        openCamera.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
+            } else {
+                startCamera()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun startCamera() {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+
+        tempImageHolder = FileProvider.getUriForFile(
+            requireContext(),
+            "com.example.familyshoppingapp.fileprovider",
+            imageFile
+        )
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, tempImageHolder)
+        }
+        startCameraLauncher.launch(cameraIntent)
+    }
+
+
+    private fun uploadImageToFirestore(imageUri: Uri) {
+        val existingImageUrl = hiddenGem.imageUrl
+        if (!existingImageUrl.isNullOrEmpty()) {
+            val oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(existingImageUrl)
+            oldImageRef.delete().addOnSuccessListener {
+                // Old image is removed and continue to upload the new image
+                uploadNewImage(imageUri)
+            }.addOnFailureListener {
+
+            }
+        } else {
+
+            uploadNewImage(imageUri)
+        }
+    }
+
+    private fun uploadNewImage(imageUri: Uri) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("images/${UUID.randomUUID()}.jpg")
+        storageRef.putFile(imageUri).addOnSuccessListener { snapshot ->
+            snapshot.storage.downloadUrl.addOnSuccessListener { downloadUrl ->
+                val newImageUrl = downloadUrl.toString()
+                updateHiddenGemImageInFirestore(newImageUrl)
+                uploadImageIntoPhotoHolder(newImageUrl)
+            }
+        }.addOnFailureListener {
+            // Hantera misslyckad uppladdning
+        }
+    }
+
+
+
+    private fun updateHiddenGemImageInFirestore(imageUri: String) {
+        val hiddenGemId = hiddenGem.id
+
+        val firestoreRef = FirebaseFirestore.getInstance()
+            .collection("hidden_gems")
+            .document(hiddenGemId)
+
+        firestoreRef.update("imageUrl", imageUri).addOnSuccessListener {
+            hiddenGem.imageUrl = imageUri
+            uploadImageIntoPhotoHolder(imageUri)
+            Toast.makeText(context, "Image updated successfully", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to update image", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun uploadImageIntoPhotoHolder(imageUri: String) {
+        Glide.with(this)
+            .load(imageUri)
+            .into(photoHolder)
+    }
+
 
     private fun checkAndRequestLocationPermission() {
         if (ContextCompat.checkSelfPermission(
@@ -171,21 +334,27 @@ class HiddenGemDetailFragment : Fragment() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
 
-                saveCurrentLocation()
-            } else {
-
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    saveCurrentLocation()
+                } else {
+                    // Hantera avslag av platsbehörighet
+                }
+            }
+            CAMERA_REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    startCamera()
+                } else {
+                    // Hantera avslag av kamerabehörighet
+                }
             }
         }
     }
+
 
     private fun saveCurrentLocation() {
 
@@ -347,13 +516,12 @@ class HiddenGemDetailFragment : Fragment() {
 
     companion object {
         const val HIDDEN_GEM = "hidden_gem"
-        private const val IS_EDITABLE = "is_editable"
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
+        const val CAMERA_REQUEST_CODE = 101
 
         fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): HiddenGemDetailFragment {
             val args = Bundle().apply {
                 putParcelable(HIDDEN_GEM, hiddenGem)
-                putBoolean(IS_EDITABLE, isEditable)
             }
             return HiddenGemDetailFragment().apply {
                 arguments = args

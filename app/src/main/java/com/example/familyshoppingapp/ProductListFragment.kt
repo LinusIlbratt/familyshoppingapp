@@ -69,7 +69,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
             if (result.resultCode == Activity.RESULT_OK) {
                 currentShoppingItem?.let { item ->
                     productImageUris[item.documentId]?.let { uri ->
-                        uploadImageToFirebaseStorage(uri, item)
+                        uploadImageToFirestore(uri, item)
                         currentDialog?.dismiss()  // Stänger dialogrutan
                     }
                 }
@@ -388,7 +388,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
     }
 
 
-    private fun uploadImageToFirebaseStorage(imageUri: Uri, item: ShoppingItem) {
+    private fun uploadImageToFirestore(imageUri: Uri, item: ShoppingItem) {
         item.oldImageUrl = item.imageUrl
         val filename = UUID.randomUUID().toString()
         val ref = storageReference.child("images/$filename")
