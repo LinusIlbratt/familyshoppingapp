@@ -38,6 +38,7 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var stopSharingButton: Button
     private lateinit var photoHolder: ImageView
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
+    private lateinit var userDeviceStorage: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +69,13 @@ class HiddenGemDetailFragment : Fragment() {
                 // Kameratillstånd beviljades
             } else {
                 // Kameratillstånd nekades
+            }
+        }
+
+        userDeviceStorage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            // Handle users image
+            if (uri != null) {
+                // Upload to firestore function
             }
         }
     }
@@ -191,7 +199,8 @@ class HiddenGemDetailFragment : Fragment() {
         // Handle click on symbols
         val openGallery = dialogView.findViewById<ImageView>(R.id.open_gallery_icon)
         openGallery.setOnClickListener {
-
+            // Let the user choose image from the device storage
+            userDeviceStorage.launch("image/*")
         }
 
         val openCamera = dialogView.findViewById<ImageView>(R.id.open_camera_icon)
