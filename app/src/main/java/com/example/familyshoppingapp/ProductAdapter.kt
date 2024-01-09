@@ -212,7 +212,7 @@ class ProductAdapter(
     }
 
     private fun showProductPopup(context: Context, item: ShoppingItem, onImageUpdatedListener: OnImageUpdatedListener): AlertDialog {
-        val builder = AlertDialog.Builder(context)
+        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
         val dialogLayout = LayoutInflater.from(context).inflate(R.layout.product_popup, null)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
 

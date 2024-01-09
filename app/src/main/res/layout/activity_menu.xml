@@ -144,6 +144,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -152,15 +154,40 @@
             android:id="@+id/btn_saveCarGPS"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="100dp"
-            android:text="@string/park_car" />
+            android:text="Park Car"
+            android:fontFamily="@font/roboto"
+            android:textColor="@color/white"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/info_bar_left_button"/>
 
         <Button
             android:id="@+id/btn_findCar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:text="@string/find_car" />
+            android:text="@string/find_car"
+            android:fontFamily="@font/roboto"
+            android:textColor="@color/white"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/info_bar_middle_button"/>
+
+        <Button
+            android:id="@+id/infobar_middle_button_two"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="info"
+            android:fontFamily="@font/roboto"
+            android:textColor="@color/white"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/info_bar_middle_button"/>
+
+        <Button
+            android:id="@+id/infobar_right_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="profile"
+            android:fontFamily="@font/roboto"
+            android:textColor="@color/white"
+            android:background="@drawable/infor_bar_right_button"/>
 
     </LinearLayout>
 

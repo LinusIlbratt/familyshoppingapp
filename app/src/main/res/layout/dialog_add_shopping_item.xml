@@ -13,7 +13,7 @@
         android:hint="Item name"
         android:fontFamily="@font/poppins_bold_italic"
         android:textSize="18sp"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
