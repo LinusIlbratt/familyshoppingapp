@@ -209,10 +209,11 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun showInvitePopup(listId: String) {
+
         val inviteView = LayoutInflater.from(requireContext()).inflate(R.layout.send_invite, null)
         val emailEditText = inviteView.findViewById<EditText>(R.id.editTextEmailAddress)
 
-        AlertDialog.Builder(requireActivity())
+        AlertDialog.Builder(requireActivity(), R.style.CustomAlertDialog)
             .setView(inviteView)
             .setTitle("")
             .setPositiveButton("Send") { invite, which ->
