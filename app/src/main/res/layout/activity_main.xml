@@ -17,7 +17,7 @@
         android:layout_marginTop="50dp"
         android:text="@string/sign_in_with_google_button"
         android:fontFamily="@font/roboto_bold"
-        android:background="@drawable/custom_rounded_button"
+        android:background="@drawable/custom_rounded_button_main_activity"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
