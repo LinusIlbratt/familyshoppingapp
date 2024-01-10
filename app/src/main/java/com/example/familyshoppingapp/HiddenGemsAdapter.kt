@@ -33,7 +33,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             TYPE_HEADER -> {
-                HeaderViewHolder(inflater.inflate(R.layout.section_header, parent, false))
+                HeaderViewHolder(inflater.inflate(R.layout.section_header_hidden_gems, parent, false))
             }
             TYPE_ITEM -> {
                 val itemView = inflater.inflate(R.layout.hidden_gem_item, parent, false)

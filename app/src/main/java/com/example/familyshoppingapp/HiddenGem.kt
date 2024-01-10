@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 data class HiddenGem(
     val id: String = "",
     val name: String = "",
-    var description: String = "Add a description",
+    var description: String = "",
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var imageUrl: String? = null,

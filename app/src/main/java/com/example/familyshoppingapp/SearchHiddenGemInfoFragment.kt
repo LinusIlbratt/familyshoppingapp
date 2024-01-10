@@ -1,30 +1,19 @@
 package com.example.familyshoppingapp
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
-import android.provider.ContactsContract.CommonDataKinds.Im
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.firestore.FirebaseFirestore
 
 class SearchHiddenGemInfoFragment : Fragment() {
 
@@ -66,7 +55,7 @@ class SearchHiddenGemInfoFragment : Fragment() {
     private fun initViews(view: View) {
         val photoHolder = view.findViewById<ImageView>(R.id.hidden_gem_detail_photoHolder)
 
-        val titleTextView = view.findViewById<TextView>(R.id.detail_titel)
+        val titleTextView = view.findViewById<TextView>(R.id.detail_title)
         titleTextView.text = hiddenGem.name
 
         val descriptionTextView = view.findViewById<TextView>(R.id.detail_description_textView)

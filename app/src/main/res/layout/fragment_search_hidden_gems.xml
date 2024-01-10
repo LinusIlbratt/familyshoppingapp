@@ -7,27 +7,45 @@
     android:background="@drawable/activity_background"
     tools:context=".MenuActivity">
 
+    <TextView
+        android:id="@+id/search_hidden_gem_fragment_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="10dp"
+        android:fontFamily="@font/roboto_light_italic"
+        android:gravity="center"
+        android:minWidth="200dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:text="Search for a hidden gem"
+        android:textColor="@color/white"
+        android:textSize="26sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/backArrow"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/backArrow"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        app:layout_constraintHeight_percent="0.05"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.1"
         app:srcCompat="@drawable/back_arrow" />
 
     <SearchView
         android:id="@+id/search_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintWidth_percent="0.7"
+        android:layout_marginTop="10dp"
         android:iconifiedByDefault="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/backArrow"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_hidden_gem_fragment_title"
+        app:layout_constraintWidth_percent="0.7" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_search_results"

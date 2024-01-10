@@ -25,10 +25,10 @@ import android.location.Location
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.widget.ImageButton
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
-import androidx.fragment.app.FragmentManager
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
@@ -45,8 +45,8 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var editButton: Button
     private lateinit var saveButton: Button
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var shareButton: Button
-    private lateinit var stopSharingButton: Button
+    private lateinit var shareButton: ImageButton
+    private lateinit var stopSharingButton: ImageButton
     private lateinit var photoHolder: ImageView
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
     private lateinit var userDeviceStorage: ActivityResultLauncher<String>
@@ -111,7 +111,7 @@ class HiddenGemDetailFragment : Fragment() {
 
         photoHolder = view.findViewById(R.id.hidden_gem_detail_photoHolder)
 
-        view.findViewById<TextView>(R.id.detail_titel).text = hiddenGem.name
+        view.findViewById<TextView>(R.id.detail_title).text = hiddenGem.name
 
         shareButton = view.findViewById(R.id.btn_share_public)
         stopSharingButton = view.findViewById(R.id.btn_stop_sharing_public)
@@ -164,13 +164,13 @@ class HiddenGemDetailFragment : Fragment() {
             editButton.visibility = View.VISIBLE
         }
 
-        val saveGpsButton = view?.findViewById<Button>(R.id.btn_save_gps)
+        val saveGpsButton = view?.findViewById<ImageButton>(R.id.btn_save_gps)
         if (saveGpsButton != null) {
             saveGpsButton.setOnClickListener {
                 checkAndRequestLocationPermission()
             }
         }
-        val showGpsButton = view?.findViewById<Button>(R.id.btn_show_gps)
+        val showGpsButton = view?.findViewById<ImageButton>(R.id.btn_show_gps)
         if (showGpsButton != null) {
             showGpsButton.setOnClickListener {
                 showDirectionsInGoogleMap()
@@ -196,7 +196,7 @@ class HiddenGemDetailFragment : Fragment() {
                     updatedHiddenGem?.let {
                         it.isShared = document.getBoolean("isShared") ?: false
                         this.hiddenGem = it
-                        updateButtonsBasedOnSharingStatus(hiddenGem.isShared)
+                        // updateButtonsBasedOnSharingStatus(hiddenGem.isShared)
                         Log.d("HiddenGemDetailFragment", "Loaded HiddenGem isShared status: ${hiddenGem.isShared}")
                     }
                 }
@@ -218,15 +218,17 @@ class HiddenGemDetailFragment : Fragment() {
     }
 
     private fun showPhotoHolderDialogPopup() {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.photo_holder_dialog_popup, null)
-        val dialog = AlertDialog.Builder(context)
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_photo_holder_popup, null)
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
             .setView(dialogView)
+            .setTitle("Add a photo from your gallery or camera")
+            .setNegativeButton("Close", null)
             .create()
 
-        // Handle click on symbols
+
         val openGallery = dialogView.findViewById<ImageView>(R.id.open_gallery_icon)
         openGallery.setOnClickListener {
-            // Let the user choose image from the device storage
+
             userDeviceStorage.launch("image/*")
         }
 
@@ -239,8 +241,16 @@ class HiddenGemDetailFragment : Fragment() {
             }
         }
 
+        // The custom alert dialog didn't change the negative button to white, hardcoded the color instead
+        dialog.setOnShowListener {
+            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            negativeButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        }
+
         dialog.show()
     }
+
+
 
     private fun startCamera() {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -493,8 +503,8 @@ class HiddenGemDetailFragment : Fragment() {
         firestore.collection("hidden_gems").document(hiddenGem.id)
             .update("isShared", shouldBeShared)
             .addOnSuccessListener {
-                updateButtonsBasedOnSharingStatus(shouldBeShared)
-                val message = if (shouldBeShared) "Delas nu publikt!" else "Slutar dela publikt."
+//                updateButtonsBasedOnSharingStatus(shouldBeShared)
+                val message = if (shouldBeShared) "Is now shared publicly" else "Is no longer shared publicly."
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
@@ -503,15 +513,15 @@ class HiddenGemDetailFragment : Fragment() {
     }
 
 
-    private fun updateButtonsBasedOnSharingStatus(isShared: Boolean) {
-        if (isShared) {
-            shareButton.visibility = View.GONE
-            stopSharingButton.visibility = View.VISIBLE
-        } else {
-            shareButton.visibility = View.VISIBLE
-            stopSharingButton.visibility = View.GONE
-        }
-    }
+//    private fun updateButtonsBasedOnSharingStatus(isShared: Boolean) {
+//        if (isShared) {
+//            shareButton.visibility = View.GONE
+//            stopSharingButton.visibility = View.VISIBLE
+//        } else {
+//            shareButton.visibility = View.VISIBLE
+//            stopSharingButton.visibility = View.GONE
+//        }
+//    }
 
 
     companion object {

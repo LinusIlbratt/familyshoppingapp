@@ -66,12 +66,12 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             showSearchHiddenGemsFragment()
         }
 
-        val btnSaveGPS = findViewById<Button>(R.id.btn_saveCarGPS)
+        val btnSaveGPS = findViewById<ImageButton>(R.id.btn_saveCarGPS)
         btnSaveGPS.setOnClickListener {
             saveParkingLocation()
         }
 
-        val btnFindCar = findViewById<Button>(R.id.btn_findCar)
+        val btnFindCar = findViewById<ImageButton>(R.id.btn_findCar)
         btnFindCar.setOnClickListener {
             findParkingLocation()
         }

@@ -114,7 +114,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     private fun showAddHiddenGemDialog() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
 
-        val builder = context?.let { AlertDialog.Builder(it) }
+        val builder = context?.let { AlertDialog.Builder(it, R.style.CustomAlertDialog) }
         builder?.apply {
             setView(dialogView)
                 .setTitle("Add New Hidden Gem")
@@ -128,8 +128,11 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
                         val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList)
                         addNewHiddenGemToFirestore(newHiddenGem)
                     } else {
-                        Toast.makeText(context, "All fields are required, including at least one tag", Toast.LENGTH_LONG).show()
+                        CustomToast.showCustomToast(context, "All fields are required, including at least one tag", Toast.LENGTH_LONG)
                     }
+                }
+                .setNegativeButton("Close") { dialog, which ->
+
                 }
         }
         builder?.create()?.show()

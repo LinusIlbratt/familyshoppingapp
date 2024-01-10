@@ -19,18 +19,16 @@
 
     <ImageView
         android:id="@+id/backArrow"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-        app:layout_constraintHeight_percent="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.1"
         app:srcCompat="@drawable/back_arrow" />
 
     <TextView
-        android:id="@+id/detail_titel"
+        android:id="@+id/detail_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -49,7 +47,7 @@
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detail_titel" />
+        app:layout_constraintTop_toBottomOf="@+id/detail_title" />
 
 
     <Button
