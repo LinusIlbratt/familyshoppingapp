@@ -47,10 +47,12 @@
         android:id="@+id/description_scroll_view"
         android:layout_width="300dp"
         android:layout_height="120dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="50dp"
         android:layout_marginTop="5dp"
-        android:background="@color/black"
+        android:background="@drawable/custom_scroll_view_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/detail_title">
@@ -59,17 +61,18 @@
             android:id="@+id/detail_description_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autofillHints="text"
-            android:hint="Hit the edit button to add a description"
-            android:textColor="@color/white" />
+            android:hint="Edit to add a description"
+            android:textColor="#FFFFFF"/>
     </ScrollView>
 
     <Button
         android:id="@+id/btn_edit_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="5dp"
         android:text="Edit"
+        android:textColor="@color/white"
+        android:background="#004225"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description_scroll_view" />
@@ -78,8 +81,10 @@
         android:id="@+id/btn_save_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:text="Save"
+        android:textColor="@color/white"
+        android:background="#004225"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/detail_title"
         app:layout_constraintEnd_toEndOf="@+id/detail_title"
