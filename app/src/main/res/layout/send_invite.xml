@@ -13,7 +13,7 @@
         android:fontFamily="@font/poppins_bold_italic"
         android:hint="Friend email"
         android:inputType="textEmailAddress"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

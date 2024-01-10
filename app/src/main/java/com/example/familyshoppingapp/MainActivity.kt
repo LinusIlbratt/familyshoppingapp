@@ -56,6 +56,11 @@ class MainActivity : AppCompatActivity() {
             googleSignIn()
         }
 
+        val googleSignOutButton = findViewById<Button>(R.id.btn_google_sign_out)
+        googleSignOutButton.setOnClickListener {
+            googleSignOut()
+        }
+
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         findViewById<Button>(R.id.btn_email_sign_up).setOnClickListener {
@@ -105,13 +110,13 @@ class MainActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Registrering lyckad, uppdatera UI med användarens information
                     val firebaseUser = auth.currentUser
+                    if (firebaseUser != null) {
+                        saveUserDataToFirestore(firebaseUser)
+                    }
                     updateUI(firebaseUser)
                 } else {
-                    // Om registreringen misslyckas, visa ett meddelande till användaren
-                    Toast.makeText(baseContext, "Authentication failed.",
-                        Toast.LENGTH_SHORT).show()
+                    Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
                     updateUI(null)
                 }
             }
@@ -121,11 +126,11 @@ class MainActivity : AppCompatActivity() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Inloggning lyckad, uppdatera UI med användarens information
+
                     val firebaseUser = auth.currentUser
                     updateUI(firebaseUser)
                 } else {
-                    // Om inloggningen misslyckas, visa ett meddelande till användaren
+
                     Toast.makeText(baseContext, "Authentication failed.",
                         Toast.LENGTH_SHORT).show()
                     updateUI(null)
@@ -135,10 +140,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(user: FirebaseUser?) {
         if (user != null) {
-            // Användaren är inloggad, navigera till MenuActivity
+            saveUserDataToFirestore(user)
             goToMenuActivity()
         } else {
-            // Användaren är inte inloggad, förbli på denna skärm
+
         }
     }
 
@@ -174,6 +179,16 @@ class MainActivity : AppCompatActivity() {
     private fun googleSignIn() {
         val signInIntent = googleSignInClient.signInIntent
         googleSignInLauncher.launch(signInIntent)
+    }
+
+    private fun googleSignOut() {
+        auth.signOut()
+
+        googleSignInClient.signOut().addOnCompleteListener(this) {
+
+            updateUI(null)
+        }
+        CustomToast.showCustomToast(this, "You are now signed out from Google and can sign in with a different user", Toast.LENGTH_SHORT)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

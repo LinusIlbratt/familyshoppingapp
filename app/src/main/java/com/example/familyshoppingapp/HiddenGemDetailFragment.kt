@@ -87,9 +87,9 @@ class HiddenGemDetailFragment : Fragment() {
 
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                // Kameratillstånd beviljades
+                // Camera access granted
             } else {
-                // Kameratillstånd nekades
+                // Camera access denied
             }
         }
 
@@ -318,7 +318,7 @@ class HiddenGemDetailFragment : Fragment() {
                 uploadImageIntoPhotoHolder(newImageUrl)
             }
         }.addOnFailureListener {
-            // Hantera misslyckad uppladdning
+
         }
     }
 
