@@ -45,21 +45,21 @@
 
     <ScrollView
         android:id="@+id/description_scroll_view"
-        android:layout_width="250dp"
+        android:layout_width="300dp"
         android:layout_height="120dp"
         android:layout_marginStart="50dp"
-        android:layout_marginTop="10dp"
         android:layout_marginEnd="50dp"
+        android:layout_marginTop="5dp"
         android:background="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detail_title"
-        app:layout_constraintBottom_toTopOf="@+id/btn_edit_desc">
+        app:layout_constraintTop_toBottomOf="@+id/detail_title">
 
         <EditText
             android:id="@+id/detail_description_edit"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="text"
             android:hint="Hit the edit button to add a description"
             android:textColor="@color/white" />
     </ScrollView>
@@ -68,9 +68,8 @@
         android:id="@+id/btn_edit_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="2dp"
         android:text="Edit"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description_scroll_view" />
@@ -79,13 +78,13 @@
         android:id="@+id/btn_save_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:text="Save"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/detail_title"
+        app:layout_constraintEnd_toEndOf="@+id/detail_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/description_scroll_view" />
+        app:layout_constraintTop_toTopOf="@+id/detail_title" />
 
     <LinearLayout
         android:id="@+id/linearLayout"

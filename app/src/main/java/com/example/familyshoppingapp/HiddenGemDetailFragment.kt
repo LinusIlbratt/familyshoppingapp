@@ -18,6 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import com.google.android.gms.location.LocationServices
@@ -25,6 +26,7 @@ import android.location.Location
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,10 +46,12 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var descriptionEditText: EditText
     private lateinit var editButton: Button
     private lateinit var saveButton: Button
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var saveGpsButton: ImageButton
+    private lateinit var showGpsButton: ImageButton
     private lateinit var shareButton: ImageButton
     private lateinit var stopSharingButton: ImageButton
     private lateinit var photoHolder: ImageView
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var permissionLauncher: ActivityResultLauncher<String>
     private lateinit var userDeviceStorage: ActivityResultLauncher<String>
     private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
@@ -113,6 +117,8 @@ class HiddenGemDetailFragment : Fragment() {
 
         view.findViewById<TextView>(R.id.detail_title).text = hiddenGem.name
 
+        saveGpsButton = view.findViewById(R.id.btn_save_gps)
+        showGpsButton = view.findViewById(R.id.btn_show_gps)
         shareButton = view.findViewById(R.id.btn_share_public)
         stopSharingButton = view.findViewById(R.id.btn_stop_sharing_public)
 
@@ -139,6 +145,15 @@ class HiddenGemDetailFragment : Fragment() {
         }
 
         editButton.setOnClickListener {
+
+            saveGpsButton.visibility = View.GONE
+            showGpsButton.visibility = View.GONE
+            shareButton.visibility = View.GONE
+            stopSharingButton.visibility = View.GONE
+            saveButton.visibility = View.VISIBLE
+            editButton.visibility = View.GONE
+            view?.findViewById<TextView>(R.id.detail_title)?.visibility = View.INVISIBLE
+
             descriptionEditText.background =
                 ResourcesCompat.getDrawable(resources, R.drawable.edit_text_background, null)
             descriptionEditText.isFocusable = true
@@ -148,33 +163,40 @@ class HiddenGemDetailFragment : Fragment() {
             descriptionEditText.setSelection(descriptionEditText.text.length)
             descriptionEditText.requestFocus()
 
-            saveButton.visibility = View.VISIBLE
-            editButton.visibility = View.GONE
+
+
+            val inputMethodManager = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.showSoftInput(descriptionEditText, InputMethodManager.SHOW_IMPLICIT)
         }
 
         saveButton.setOnClickListener {
             hiddenGem.description = descriptionEditText.text.toString()
             saveHiddenGemDesc(hiddenGem)
 
+            saveGpsButton.visibility = View.VISIBLE
+            showGpsButton.visibility = View.VISIBLE
+            shareButton.visibility = View.VISIBLE
+            stopSharingButton.visibility = View.VISIBLE
+            saveButton.visibility = View.GONE
+            editButton.visibility = View.VISIBLE
+            view?.findViewById<TextView>(R.id.detail_title)?.visibility = View.VISIBLE
+
+
             descriptionEditText.background = null
             descriptionEditText.isFocusable = false
             descriptionEditText.isFocusableInTouchMode = false
             descriptionEditText.isCursorVisible = false
-            saveButton.visibility = View.GONE
-            editButton.visibility = View.VISIBLE
+
+            val inputMethodManager = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(view?.windowToken, 0)
         }
 
-        val saveGpsButton = view?.findViewById<ImageButton>(R.id.btn_save_gps)
-        if (saveGpsButton != null) {
-            saveGpsButton.setOnClickListener {
-                checkAndRequestLocationPermission()
-            }
+        saveGpsButton.setOnClickListener{
+            checkAndRequestLocationPermission()
         }
-        val showGpsButton = view?.findViewById<ImageButton>(R.id.btn_show_gps)
-        if (showGpsButton != null) {
-            showGpsButton.setOnClickListener {
-                showDirectionsInGoogleMap()
-            }
+
+        showGpsButton.setOnClickListener {
+            showDirectionsInGoogleMap()
         }
 
         shareButton.setOnClickListener {
