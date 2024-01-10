@@ -138,7 +138,7 @@ class ProductAdapter(
     }
 
     private fun showEditPopUp(context: Context, item: ShoppingItem, position: Int) {
-        val builder = AlertDialog.Builder(context)
+        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
         val inflater = LayoutInflater.from(context)
         val dialogLayout = inflater.inflate(R.layout.edit_item, null)
         val editText = dialogLayout.findViewById<EditText>(R.id.editItemName)
@@ -212,38 +212,45 @@ class ProductAdapter(
     }
 
     private fun showProductPopup(context: Context, item: ShoppingItem, onImageUpdatedListener: OnImageUpdatedListener): AlertDialog {
-        val builder = AlertDialog.Builder(context)
+        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
         val dialogLayout = LayoutInflater.from(context).inflate(R.layout.product_popup, null)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
+        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
 
+        // Skapa dialogen
+        builder.setView(dialogLayout).setPositiveButton("Close", null)
+        val dialog = builder.create()
+
+        // Ladda bild om den finns
         item.imageUrl?.let { imageUrl ->
             Glide.with(context).load(imageUrl).into(uploadImageToImageView)
         }
 
+        // Hantera långklick för att ta bort bild
         uploadImageToImageView.setOnLongClickListener {
             AlertDialog.Builder(context)
                 .setTitle("Remove Image")
                 .setMessage("Do you want to remove this image?")
-                .setPositiveButton("Yes") { dialog, which ->
+                .setPositiveButton("Yes") { _, _ ->
                     removeImage(item)
+                    dialog.dismiss() // Stäng huvuddialogen
                 }
                 .setNegativeButton("No", null)
                 .show()
             true
         }
 
-        val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
+        // Hantera klick på kameraikonen
         imageViewCamera.setOnClickListener {
             onCameraIconClickListener.onCameraIconClick(item)
+            dialog.dismiss() // Stäng huvuddialogen
         }
 
-        builder.setView(dialogLayout)
-            .setPositiveButton("Close", null)
-
-        val dialog = builder.create()
+        // Visa dialogen
         dialog.show()
         return dialog
     }
+
 
 }
 

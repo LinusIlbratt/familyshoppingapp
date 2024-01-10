@@ -7,11 +7,11 @@
 
     <ImageView
         android:id="@+id/hidden_gem_detail_photoHolder"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintWidth_percent="0.6"
-        app:layout_constraintHeight_percent="0.3"
+        android:layout_width="250dp"
+        android:layout_height="150dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="20dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/baseline_add_a_photo_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,97 +19,146 @@
 
     <ImageView
         android:id="@+id/backArrow"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-        app:layout_constraintHeight_percent="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.1"
         app:srcCompat="@drawable/back_arrow" />
 
     <TextView
-        android:id="@+id/detail_titel"
-        android:layout_width="wrap_content"
+        android:id="@+id/detail_title"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="15dp"
+        android:gravity="center"
         android:text="Titel Name"
-        android:textSize="50sp"
+        android:textSize="40sp"
+        app:autoSizeMaxTextSize="40sp"
+        app:autoSizeMinTextSize="12sp"
+        app:autoSizeStepGranularity="2sp"
+        app:autoSizeTextType="uniform"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/hidden_gem_detail_photoHolder" />
 
-    <EditText
-        android:id="@+id/detail_description_edit"
+    <ScrollView
+        android:id="@+id/description_scroll_view"
         android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:hint="Enter Description Here"
-        android:textColor="@color/black"
+        android:layout_height="120dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/custom_scroll_view_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detail_titel" />
+        app:layout_constraintTop_toBottomOf="@+id/detail_title">
+
+        <EditText
+            android:id="@+id/detail_description_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Edit to add a description"
+            android:textColor="#FFFFFF"/>
+    </ScrollView>
 
     <Button
         android:id="@+id/btn_edit_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="5dp"
         android:text="Edit"
+        android:textColor="@color/white"
+        android:background="#004225"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detail_description_edit" />
+        app:layout_constraintTop_toBottomOf="@+id/description_scroll_view" />
 
     <Button
         android:id="@+id/btn_save_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
         android:text="Save"
+        android:textColor="@color/white"
+        android:background="#004225"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/detail_title"
+        app:layout_constraintEnd_toEndOf="@+id/detail_title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detail_description_edit" />
+        app:layout_constraintTop_toTopOf="@+id/detail_title" />
 
-    <Button
-        android:id="@+id/btn_save_gps"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginBottom="100dp"
-        android:text="Save GPS"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="80dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
-    <Button
-        android:id="@+id/btn_show_gps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
-        android:layout_marginBottom="50dp"
-        android:text="Show GPS"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/btn_share_public"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginBottom="100dp"
-        android:text="@string/share_with_public"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btn_save_gps" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    <Button
-        android:id="@+id/btn_stop_sharing_public"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginBottom="50dp"
-        android:text="Stop Share"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btn_show_gps" />
+            <ImageButton
+                android:id="@+id/btn_save_gps"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/custom_button_orange"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_save_gps_medium" />
+
+            <ImageButton
+                android:id="@+id/btn_show_gps"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/custom_button_orange"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_show_gps_medium" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/btn_share_public"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/custom_button_orange"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_share_public"
+                android:text="@string/share_with_public" />
+
+            <ImageButton
+                android:id="@+id/btn_stop_sharing_public"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/custom_button_orange"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/icon_stop_share" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

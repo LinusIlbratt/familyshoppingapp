@@ -9,30 +9,32 @@
 
     <TextView
         android:id="@+id/hiddenGemTextTitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="Your shopping lists"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="10dp"
         android:gravity="center"
-        android:fontFamily="@font/poppins_bold_italic"
-        android:textSize="24sp"
-        android:textColor="#403115"
-        app:layout_constraintStart_toStartOf="parent"
+        android:minWidth="200dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:fontFamily="@font/roboto_light_italic"
+        android:textColor="@color/white"
+        android:textSize="26sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Your shopping lists"/>
 
     <ImageView
         android:id="@+id/backArrow"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintHeight_percent="0.05"
-        app:layout_constraintWidth_percent="0.1"
-        android:layout_marginStart="5dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="10dp"
         app:layout_constraintBottom_toTopOf="@+id/recyclerViewShopList"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/back_arrow" />
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewShopList"
@@ -41,6 +43,7 @@
         android:clipToPadding="false"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

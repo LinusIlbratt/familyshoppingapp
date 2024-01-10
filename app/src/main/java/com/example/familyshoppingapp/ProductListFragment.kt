@@ -3,6 +3,7 @@ package com.example.familyshoppingapp
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
@@ -263,9 +264,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
 
 
     private fun addNewItemPopUpWindow() {
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
         val inflater = layoutInflater
-        val dialogLayout = inflater.inflate(R.layout.add_shopping_item, null)
+        val dialogLayout = inflater.inflate(R.layout.dialog_add_shopping_item, null)
         val editItemName = dialogLayout.findViewById<EditText>(R.id.addItemName)
         val addItemVoice = dialogLayout.findViewById<ImageView>(R.id.voiceIconImage)
 
@@ -287,6 +288,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                     val newItem = ShoppingItem(name = itemName, listId = listId)
                     addItemsToDatabase(newItem)
                 }
+            }
+            .setNegativeButton("Close") { dialog, which ->
+                // Inget behov av att skriva någon kod här, dialogrutan stängs automatiskt
             }
         builder.show()
     }
