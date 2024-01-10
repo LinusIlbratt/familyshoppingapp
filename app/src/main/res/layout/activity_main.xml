@@ -24,6 +24,22 @@
         app:layout_constraintTop_toBottomOf="@+id/shoppingCartIcon"
         app:layout_constraintWidth_percent="0.48" />
 
+    <Button
+        android:id="@+id/btn_google_sign_out"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="25dp"
+        android:background="@drawable/custom_rounded_button_main_activity"
+        android:fontFamily="@font/roboto_bold"
+        android:text="Sign out with Google"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.058"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_google_sign_in"
+        app:layout_constraintWidth_percent="0.48" />
+
 
     <Button
         android:id="@+id/btn_email_sign_up"
@@ -33,7 +49,7 @@
         android:text="Sign Up with Email"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_google_sign_in" />
+        app:layout_constraintTop_toBottomOf="@id/btn_google_sign_out" />
 
     <Button
         android:id="@+id/btn_email_sign_in"

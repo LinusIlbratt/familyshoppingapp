@@ -79,9 +79,6 @@ class CardListsAdapter(
         val inviteButton: FloatingActionButton = itemView.findViewById(R.id.inviteButton)
         val addMemberText: TextView = itemView.findViewById(R.id.addMemberText)
         val addSignOnInviteButton: ImageView = itemView.findViewById(R.id.addSignOnInviteBtn)
-//        fun bind(shoppingList: ShoppingLists) {
-//            // Bind data to your views
-//
-//        }
+
     }
 }
