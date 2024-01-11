@@ -187,7 +187,7 @@ class HiddenGemDetailFragment : Fragment() {
 
         saveButton.setOnClickListener {
             hiddenGem.description = descriptionEditText.text.toString()
-            saveHiddenGemDesc(hiddenGem)
+            saveHiddenGem(hiddenGem, "Description updated successfully", "description")
 
             saveGpsButton.visibility = View.VISIBLE
             showGpsButton.visibility = View.VISIBLE
@@ -422,7 +422,7 @@ class HiddenGemDetailFragment : Fragment() {
                     hiddenGem.latitude = location.latitude
                     hiddenGem.longitude = location.longitude
                     Log.d("!!!", "getting into saveHiddenGemGeneralData")
-                    saveHiddenGemGeneralData(hiddenGem)
+                    saveHiddenGem(hiddenGem, "GPS position updated successfully", "description")
 
                     fusedLocationProviderClient.removeLocationUpdates(this)
                 }
@@ -444,9 +444,7 @@ class HiddenGemDetailFragment : Fragment() {
         }
     }
 
-
-
-    private fun saveHiddenGemGeneralData(hiddenGem: HiddenGem) {
+    private fun saveHiddenGem(hiddenGem: HiddenGem, successMessage: String, errorMessage: String) {
         if (hiddenGem.id.isEmpty()) {
             Log.w("HiddenGemDetailFragment", "Hidden Gem ID is empty")
             Toast.makeText(context, "Error: Hidden Gem ID is missing", Toast.LENGTH_SHORT).show()
@@ -458,43 +456,10 @@ class HiddenGemDetailFragment : Fragment() {
 
         hiddenGemsCollection.document(hiddenGem.id).set(hiddenGem)
             .addOnSuccessListener {
-
-                Toast.makeText(context, "Hidden Gem updated successfully", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-
-                Toast.makeText(
-                    context,
-                    "Error updating Hidden Gem: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-    }
-
-
-    private fun saveHiddenGemDesc(hiddenGem: HiddenGem) {
-        if (hiddenGem.id.isEmpty()) {
-            Log.w("HiddenGemDetailFragment", "Hidden Gem ID is empty")
-            return
-        }
-
-        val firestore = FirebaseFirestore.getInstance()
-        val hiddenGemsCollection = firestore.collection("hidden_gems")
-
-        hiddenGemsCollection.document(hiddenGem.id).set(hiddenGem)
-            .addOnSuccessListener {
-
-                Toast.makeText(context, "Description updated successfully", Toast.LENGTH_SHORT)
-                    .show()
-            }
-            .addOnFailureListener { e ->
-
-                Toast.makeText(
-                    context,
-                    "Error updating description: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Error updating $errorMessage: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
