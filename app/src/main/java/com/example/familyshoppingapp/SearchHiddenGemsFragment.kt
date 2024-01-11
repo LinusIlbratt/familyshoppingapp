@@ -79,7 +79,7 @@ class SearchHiddenGemsFragment : Fragment() {
                 updateRecyclerView(searchResults)
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Sökningen misslyckades: ${e.message}", Toast.LENGTH_LONG)
+                Toast.makeText(context, "Search failed: ${e.message}", Toast.LENGTH_LONG)
                     .show()
             }
     }
@@ -89,7 +89,7 @@ class SearchHiddenGemsFragment : Fragment() {
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.search_gem_fragment_container, detailFragment)
-            .addToBackStack(null)  // Lägg till i backstacken
+            .addToBackStack(null)
             .commit()
     }
 
@@ -97,7 +97,7 @@ class SearchHiddenGemsFragment : Fragment() {
 
     private fun updateRecyclerView(newHiddenGems: List<HiddenGem>) {
         if (newHiddenGems.isEmpty()) {
-            Toast.makeText(context, "Inga resultat hittades.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "No result found.", Toast.LENGTH_LONG).show()
         } else {
             adapter.updateData(newHiddenGems)
         }

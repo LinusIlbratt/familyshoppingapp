@@ -41,7 +41,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
         invitationsList.forEach { invitation ->
             if (invitation.status == "pending") {
                 val dialogFragment = InviteDialogFragment(invitation)
-                dialogFragment.setInvitationResponseListener(this) // 'this' now refers to an instance of InvitationResponseListener
+                dialogFragment.setInvitationResponseListener(this) // 'this' refers to an instance of InvitationResponseListener
                 dialogFragment.show(childFragmentManager, "InvitationDialog")
             }
         }
@@ -119,7 +119,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
                 if (shoppingList == null || shoppingList.isCardEmpty) {
                     popUpForNewCardList()
                 } else {
-                    // Anropa onListSelected på din listener
+
                     listSelectedListener?.onListSelected(
                         shoppingList.documentId ?: "defaultListId",
                         shoppingList.name ?: "Default List"
@@ -245,10 +245,10 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
                     val members = document.get("members") as? List<String> ?: emptyList()
 
                     if (members.size <= 1) {
-                        // Endast en medlem kvar, ta bort produkter och listan
+
                         deleteAllProductsAndList(documentId, db, storage)
                     } else {
-                        // Flera medlemmar finns, ta bara bort den aktuella användaren från listan
+
                         removeUserFromList(documentId, userId, db)
                     }
                 }
@@ -259,21 +259,21 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun deleteAllProductsAndList(listId: String, db: FirebaseFirestore, storage: FirebaseStorage) {
-        // Ta bort alla produkter kopplade till listan
+
         db.collection("products").whereEqualTo("listId", listId).get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
                     val imageUrl = document.getString("imageUrl")
                     imageUrl?.let {
-                        // Ta bort bilden från Firebase Storage
+
                         val imageRef = storage.getReferenceFromUrl(it)
                         imageRef.delete()
                     }
-                    // Ta bort produkten från Firestore
+
                     db.collection("products").document(document.id).delete()
                 }
 
-                // Slutligen, ta bort själva listan
+                
                 db.collection("shoppingLists").document(listId).delete()
                     .addOnSuccessListener {
                         Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
