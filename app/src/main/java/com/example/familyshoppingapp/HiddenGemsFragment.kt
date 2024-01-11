@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
@@ -45,14 +46,24 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
         val fabAddHiddenGem = view.findViewById<FloatingActionButton>(R.id.fab_add_hidden_gem)
         fabAddHiddenGem.setOnClickListener {
-            showAddHiddenGemDialog()
+            val userId = getCurrentUserId()
+            if (userId != null) {
+                showAddHiddenGemDialog(userId)
+            } else {
+
+            }
         }
     }
 
 
     override fun onStart() {
         super.onStart()
-        setupFirestoreListener()
+        val userId = getCurrentUserId()
+        if (userId != null) {
+            setupFirestoreListener(userId)
+        } else {
+
+        }
     }
 
 
@@ -62,9 +73,10 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-    private fun setupFirestoreListener() {
+    private fun setupFirestoreListener(userId: String) {
         val firestore = FirebaseFirestore.getInstance()
         firestoreListener = firestore.collection("hidden_gems")
+            .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     Log.w("!!!", "Firestore Listener failed. (HiddenGemsFragment)", e)
@@ -125,7 +137,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-    private fun showAddHiddenGemDialog() {
+    private fun showAddHiddenGemDialog(userId: String) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
 
         val builder = context?.let { AlertDialog.Builder(it, R.style.CustomAlertDialog) }
@@ -139,8 +151,8 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
                     if (name.isNotEmpty() && category.isNotEmpty() && tagsInput.isNotEmpty()) {
                         val tagsList = tagsInput.split(",").map { it.trim() }
-                        val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList)
-                        addNewHiddenGemToFirestore(newHiddenGem)
+                        val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList, userId = userId)
+                        addNewHiddenGemToFirestore(newHiddenGem, userId) // Skicka userId som parameter
                     } else {
                         CustomToast.showCustomToast(context, "All fields are required, including least one tag", Toast.LENGTH_LONG)
                     }
@@ -153,13 +165,12 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-    private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem) {
+    private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem, userId: String) {
         val firestore = FirebaseFirestore.getInstance()
         val hiddenGemsCollection = firestore.collection("hidden_gems")
 
         val newDocumentRef = hiddenGemsCollection.document()
-
-        val updatedHiddenGem = newHiddenGem.copy(id = newDocumentRef.id)
+        val updatedHiddenGem = newHiddenGem.copy(id = newDocumentRef.id, userId = userId)
 
         newDocumentRef.set(updatedHiddenGem)
             .addOnSuccessListener {
@@ -209,6 +220,10 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error deleting document", e)
             }
+    }
+
+    private fun getCurrentUserId(): String? {
+        return FirebaseAuth.getInstance().currentUser?.uid
     }
 
 
