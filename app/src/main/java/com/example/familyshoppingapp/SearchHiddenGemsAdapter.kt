@@ -18,7 +18,7 @@ class SearchHiddenGemsAdapter(private var hiddenGems: List<HiddenGem>, private v
             textView.text = hiddenGem.name
 
             itemView.setOnClickListener {
-                Log.d("!!!", "Klickade på namn: ${hiddenGem.name}")
+                Log.d("!!!", "Clicked on: ${hiddenGem.name}")
                 onItemClicked(hiddenGem)
             }
         }

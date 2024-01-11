@@ -73,7 +73,7 @@ class ProductAdapter(
         holder.buttonSubtract.setOnClickListener {
             val currentItem = shoppingItemList[position]
             if (currentItem.quantity > 1) {
-                // Minska kvantiteten
+
                 currentItem.quantity -= 1
                 holder.amountTextView.text = "x${currentItem.quantity}"
                 currentItem.documentId?.let { documentId ->

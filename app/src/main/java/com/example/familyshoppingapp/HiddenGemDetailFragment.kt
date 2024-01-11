@@ -374,14 +374,14 @@ class HiddenGemDetailFragment : Fragment() {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     saveCurrentLocation()
                 } else {
-                    // Hantera avslag av platsbehörighet
+                    // TODO Handle location access denied
                 }
             }
             CAMERA_REQUEST_CODE -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     startCamera()
                 } else {
-                    // Hantera avslag av kamerabehörighet
+                    // TODO Handle Camera access denied
                 }
             }
         }
@@ -485,11 +485,11 @@ class HiddenGemDetailFragment : Fragment() {
                 if (mapIntent.resolveActivity(requireActivity().packageManager) != null) {
                     startActivity(mapIntent)
                 } else {
-                    Toast.makeText(context, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT)
+                    Toast.makeText(context, "Could not find the Google Maps App", Toast.LENGTH_SHORT)
                         .show()
                 }
             } ?: run {
-                Toast.makeText(context, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT)
+                Toast.makeText(context, "Could not fetch current location", Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -530,7 +530,7 @@ class HiddenGemDetailFragment : Fragment() {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Kunde inte uppdatera: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Could not update: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

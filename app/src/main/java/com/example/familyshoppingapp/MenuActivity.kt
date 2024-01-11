@@ -227,7 +227,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Behörighet inte beviljad, hantera detta
+            // TODO Access not granted
             callback(null)
             return
         }
@@ -328,11 +328,11 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 if (mapIntent.resolveActivity(packageManager) != null) {
                     startActivity(mapIntent)
                 } else {
-                    Toast.makeText(this, "Google Maps-appen hittades inte", Toast.LENGTH_SHORT)
+                    Toast.makeText(this, "Could not find the Google Maps App", Toast.LENGTH_SHORT)
                         .show()
                 }
             } ?: run {
-                Toast.makeText(this, "Kunde inte hämta nuvarande plats", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Could not fetch the current location", Toast.LENGTH_SHORT).show()
             }
         }
     }
