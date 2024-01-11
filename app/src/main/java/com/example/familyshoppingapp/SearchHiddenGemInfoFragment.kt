@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -74,7 +75,7 @@ class SearchHiddenGemInfoFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        val showGpsButton = view?.findViewById<Button>(R.id.btn_show_gps)
+        val showGpsButton = view?.findViewById<ImageButton>(R.id.btn_show_gps)
         showGpsButton?.setOnClickListener {
             showDirectionsInGoogleMap()
         }

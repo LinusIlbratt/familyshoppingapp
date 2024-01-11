@@ -50,7 +50,7 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
             is SectionItem.Header -> (holder as HeaderViewHolder).headerTextView.text = item.title
             is SectionItem.Item -> {
                 holder as ItemViewHolder
-                holder.titleTextView.text = item.hiddenGem.name
+                holder.bind(item.hiddenGem)
             }
         }
     }
@@ -87,6 +87,10 @@ class HiddenGemsAdapter(var items: List<SectionItem>, private val listener: OnHi
                     }
                 }
             }
+        }
+
+        fun bind(hiddenGem: HiddenGem) {
+            titleTextView.text = hiddenGem.name
         }
     }
 }

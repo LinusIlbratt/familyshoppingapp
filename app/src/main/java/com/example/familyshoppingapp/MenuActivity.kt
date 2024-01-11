@@ -306,7 +306,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 Toast.makeText(this, "Your car is parked", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                // Hantera misslyckandet att spara platsen
+
             }
     }
 
