@@ -7,6 +7,8 @@ import android.location.Location
 import android.media.Image
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -17,6 +19,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -222,36 +227,34 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     }
 
     private fun getCurrentLocation(callback: (Location?) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO Access not granted
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             callback(null)
             return
         }
 
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                callback(location)
-            } else {
-                Toast.makeText(
-                    this,
-                    "Could not find the location, please try again",
-                    Toast.LENGTH_LONG
-                ).show()
-                callback(null)
-            }
-        }.addOnFailureListener {
-            Toast.makeText(
-                this,
-                "An error occurred when trying to get the location.",
-                Toast.LENGTH_LONG
-            ).show()
-            callback(null)
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 5000 //
+            fastestInterval = 2000
         }
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val location = locationResult.locations
+                    .filterNotNull()
+                    .minByOrNull { it.accuracy }
+
+                location?.let {
+                    Log.d("!!!", "Accuracy: ${it.accuracy}")
+                    callback(it)
+                    fusedLocationProviderClient.removeLocationUpdates(this)
+                }
+            }
+        }
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
+
 
     private fun saveParkingLocation() {
         getCurrentLocation { location ->
