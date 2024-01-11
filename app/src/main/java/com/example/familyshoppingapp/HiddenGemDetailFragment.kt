@@ -25,6 +25,7 @@ import com.google.android.gms.location.LocationServices
 import android.location.Location
 import android.net.Uri
 import android.os.Environment
+import android.os.Looper
 import android.provider.MediaStore
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
@@ -33,6 +34,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
@@ -56,12 +60,23 @@ class HiddenGemDetailFragment : Fragment() {
     private lateinit var userDeviceStorage: ActivityResultLauncher<String>
     private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
     private var tempImageHolder: Uri? = null
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var locationCallback: LocationCallback? = null
+    private val ACCURACYLIMIT = 20f
+    private val TIMELIMIT  = 2 * 60 * 1000 // Ex. 2 minutes
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             hiddenGem = it.getParcelable(HIDDEN_GEM)
                 ?: throw IllegalArgumentException("Hidden Gem is required")
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        locationCallback?.let {
+            fusedLocationProviderClient.removeLocationUpdates(it)
         }
     }
 
@@ -76,6 +91,7 @@ class HiddenGemDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         initViews(view)
         setupListeners()
@@ -192,6 +208,7 @@ class HiddenGemDetailFragment : Fragment() {
         }
 
         saveGpsButton.setOnClickListener{
+            Log.d("!!!", "saveGpsButton pressed")
             checkAndRequestLocationPermission()
         }
 
@@ -362,6 +379,7 @@ class HiddenGemDetailFragment : Fragment() {
             )
         } else {
 
+            Log.d("!!!", "getting into saveCurrentLocation()")
             saveCurrentLocation()
         }
     }
@@ -389,32 +407,44 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun saveCurrentLocation() {
-
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-
-            return
+        Log.d("!!!", "saveCurrentLocation")
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         }
 
-        val fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(requireActivity())
-
-        fusedLocationProviderClient.lastLocation
-            .addOnSuccessListener { location: Location? ->
-                location?.let {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val location = locationResult.lastLocation
+                if (location != null) {
+                    Log.d("!!!", "Location received: Accuracy = ${location?.accuracy}, Time diff = ${System.currentTimeMillis() - location.time}")
+                }
+                if (location != null && location.accuracy < ACCURACYLIMIT && System.currentTimeMillis() - location.time < TIMELIMIT) {
                     hiddenGem.latitude = location.latitude
                     hiddenGem.longitude = location.longitude
-
+                    Log.d("!!!", "getting into saveHiddenGemGeneralData")
                     saveHiddenGemGeneralData(hiddenGem)
+
+                    fusedLocationProviderClient.removeLocationUpdates(this)
                 }
             }
-            .addOnFailureListener { e ->
+        }
 
+        locationCallback?.let {
+            val locationRequest = LocationRequest.create().apply {
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                interval = 5000
+                fastestInterval = 2000
             }
+
+            fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                it,
+                Looper.getMainLooper()
+            )
+        }
     }
+
+
 
     private fun saveHiddenGemGeneralData(hiddenGem: HiddenGem) {
         if (hiddenGem.id.isEmpty()) {
