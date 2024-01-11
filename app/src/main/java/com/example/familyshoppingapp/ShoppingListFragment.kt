@@ -38,11 +38,13 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun showInvitationsPopup(invitationsList: List<Invitation>) {
-        invitationsList.forEach { invitation ->
-            if (invitation.status == "pending") {
-                val dialogFragment = InviteDialogFragment(invitation)
-                dialogFragment.setInvitationResponseListener(this) // 'this' refers to an instance of InvitationResponseListener
-                dialogFragment.show(childFragmentManager, "InvitationDialog")
+        if (isAdded) {
+            invitationsList.forEach { invitation ->
+                if (invitation.status == "pending") {
+                    val dialogFragment = InviteDialogFragment(invitation)
+                    dialogFragment.setInvitationResponseListener(this) // 'this' refers to an instance of InvitationResponseListener
+                    dialogFragment.show(childFragmentManager, "InvitationDialog")
+                }
             }
         }
     }
