@@ -67,27 +67,41 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         firestoreListener = firestore.collection("hidden_gems")
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
-                    Log.w("HiddenGemsFragment", "Listen failed.", e)
+                    Log.w("!!!", "Firestore Listener failed. (HiddenGemsFragment)", e)
                     return@addSnapshotListener
                 }
 
                 val hiddenGemsList = snapshots?.mapNotNull { document ->
                     val hiddenGem = document.toObject(HiddenGem::class.java)
                     Log.d(
-                        "HiddenGemsFragment",
+                        "!!!",
                         "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'"
                     )
                     if (hiddenGem.name.isNullOrEmpty() || hiddenGem.tag.isNullOrEmpty()) {
-                        Log.w("HiddenGemsFragment", "Hidden Gem has null or empty name/tag")
+                        Log.w("!!!", "Hidden Gem has null or empty name/tag")
                     }
                     hiddenGem
                 } ?: emptyList()
-                Log.d("HiddenGemsFragment", "Fetched Hidden Gems: $hiddenGemsList")
+                Log.d("!!!", "Fetched Hidden Gems: $hiddenGemsList (HiddenGemsFragment)")
 
                 updateRecyclerView(hiddenGemsList)
             }
     }
 
+    private fun updateHiddenGemsData() {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("hidden_gems")
+            .get()
+            .addOnSuccessListener { documents ->
+                val hiddenGemsList = documents.mapNotNull { document ->
+                    document.toObject(HiddenGem::class.java)
+                }
+                updateRecyclerView(hiddenGemsList)
+            }
+            .addOnFailureListener { e ->
+
+            }
+    }
 
     private fun updateRecyclerView(hiddenGemsList: List<HiddenGem>) {
         val sectionItems = createSectionList(hiddenGemsList)
@@ -128,7 +142,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
                         val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList)
                         addNewHiddenGemToFirestore(newHiddenGem)
                     } else {
-                        CustomToast.showCustomToast(context, "All fields are required, including at least one tag", Toast.LENGTH_LONG)
+                        CustomToast.showCustomToast(context, "All fields are required, including least one tag", Toast.LENGTH_LONG)
                     }
                 }
                 .setNegativeButton("Close") { dialog, which ->
@@ -150,6 +164,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         newDocumentRef.set(updatedHiddenGem)
             .addOnSuccessListener {
                 Log.d("!!!", "Hidden Gem added with ID: ${newDocumentRef.id}")
+                updateHiddenGemsData()
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error adding document", e)
@@ -189,7 +204,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
             .delete()
             .addOnSuccessListener {
                 Log.d("!!!", "Hidden Gem deleted with ID: ${hiddenGem.id}")
-                // Update recyclerview if needed
+                updateHiddenGemsData()
             }
             .addOnFailureListener { e ->
                 Log.w("!!!", "Error deleting document", e)
