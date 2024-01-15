@@ -256,6 +256,10 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     }
 
 
+    private fun openParkingMap() {
+
+    }
+
     private fun saveParkingLocation() {
         getCurrentLocation { location ->
             location?.let {
