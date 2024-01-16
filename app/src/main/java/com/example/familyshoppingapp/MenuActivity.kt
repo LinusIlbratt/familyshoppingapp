@@ -23,10 +23,17 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 
 
-class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener {
+class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedListener,
+    OnMapReadyCallback {
 
     interface ProductAdapterInterface {
         fun updateProductImage(documentId: String, imageUrl: String)
@@ -45,68 +52,6 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         getUserData()
         initUIComponents()
         setupBackStackListener()
-    }
-
-    private fun getUserData() {
-        val bundle = intent.extras
-        user = bundle?.getParcelable("USER_DATA")
-            ?: throw IllegalStateException("No USER_DATA provided")
-    }
-
-    private fun initUIComponents() {
-        // add all UI components here
-
-        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
-        btnHiddenGem.setOnClickListener {
-            showHiddenGemsFragment()
-        }
-
-        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
-        btnCreateShoppingList.setOnClickListener {
-            showShoppingListFragment()
-        }
-
-        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
-        btnFindHiddenGem.setOnClickListener {
-            showSearchHiddenGemsFragment()
-        }
-
-        val btnSaveGPS = findViewById<ImageButton>(R.id.btn_saveCarGPS)
-        btnSaveGPS.setOnClickListener {
-            saveParkingLocation()
-        }
-
-        val btnFindCar = findViewById<ImageButton>(R.id.btn_findCar)
-        btnFindCar.setOnClickListener {
-            findParkingLocation()
-        }
-
-    }
-
-    private fun setupBackStackListener() {
-        val menuHeaderText = findViewById<TextView>(R.id.menu_titleText)
-        val hiddenGemTextView = findViewById<TextView>(R.id.hidden_gems_textView)
-        val createShoppingListTextView = findViewById<TextView>(R.id.create_shopping_list_textView)
-        val findHiddenGemTextView = findViewById<TextView>(R.id.search_hidden_gem_TextView)
-
-        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
-        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
-        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
-        val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
-
-        supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                menuHeaderText.visibility = View.VISIBLE
-                hiddenGemTextView.visibility = View.VISIBLE
-                createShoppingListTextView.visibility = View.VISIBLE
-                findHiddenGemTextView.visibility = View.VISIBLE
-
-                btnHiddenGem.visibility = View.VISIBLE
-                btnCreateShoppingList.visibility = View.VISIBLE
-                btnFindHiddenGem.visibility = View.VISIBLE
-                listFragmentContainer.visibility = View.GONE
-            }
-        }
     }
 
 
@@ -151,6 +96,112 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                         Toast.LENGTH_LONG
                     ).show()
                 }
+            }
+        }
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        getUserLastKnownLocation(googleMap)
+
+        getCurrentLocation { location ->
+            location?.let {
+                val userLatLng = LatLng(it.latitude, it.longitude)
+                googleMap.apply {
+                    moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 18f)) // Zoom level
+                    addMarker(MarkerOptions().position(userLatLng).title("Din Position"))
+
+                    // Check if location permission is granted
+                    if (ActivityCompat.checkSelfPermission(this@MenuActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(this@MenuActivity, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        isMyLocationEnabled = true // Enable the blue dot for user's location
+                    } else {
+                        // TODO: Consider calling ActivityCompat#requestPermissions here to request the missing permissions
+                    }
+                }
+            } ?: run {
+                // TODO: Handle if user location isn't possible
+            }
+        }
+    }
+
+    private fun getUserLastKnownLocation(googleMap: GoogleMap) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO Handle if access is denied
+            return
+        }
+
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+
+                val userLatLng = LatLng(it.latitude, it.longitude)
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 15f))
+            } ?: run {
+
+            }
+        }
+    }
+
+
+    private fun getUserData() {
+        val bundle = intent.extras
+        user = bundle?.getParcelable("USER_DATA")
+            ?: throw IllegalStateException("No USER_DATA provided")
+    }
+
+    private fun initUIComponents() {
+        // add all UI components here
+
+        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
+        btnHiddenGem.setOnClickListener {
+            showHiddenGemsFragment()
+        }
+
+        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
+        btnCreateShoppingList.setOnClickListener {
+            showShoppingListFragment()
+        }
+
+        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
+        btnFindHiddenGem.setOnClickListener {
+            showSearchHiddenGemsFragment()
+        }
+
+        val btnSaveGPS = findViewById<ImageButton>(R.id.btn_saveCarGPS)
+        btnSaveGPS.setOnClickListener {
+            //saveParkingLocation()
+            openParkingMap()
+        }
+
+        val btnFindCar = findViewById<ImageButton>(R.id.btn_findCar)
+        btnFindCar.setOnClickListener {
+            findParkingLocation()
+        }
+
+    }
+
+    private fun setupBackStackListener() {
+        val menuHeaderText = findViewById<TextView>(R.id.menu_titleText)
+        val hiddenGemTextView = findViewById<TextView>(R.id.hidden_gems_textView)
+        val createShoppingListTextView = findViewById<TextView>(R.id.create_shopping_list_textView)
+        val findHiddenGemTextView = findViewById<TextView>(R.id.search_hidden_gem_TextView)
+
+        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
+        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
+        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
+        val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
+
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                menuHeaderText.visibility = View.VISIBLE
+                hiddenGemTextView.visibility = View.VISIBLE
+                createShoppingListTextView.visibility = View.VISIBLE
+                findHiddenGemTextView.visibility = View.VISIBLE
+
+                btnHiddenGem.visibility = View.VISIBLE
+                btnCreateShoppingList.visibility = View.VISIBLE
+                btnFindHiddenGem.visibility = View.VISIBLE
+                listFragmentContainer.visibility = View.GONE
             }
         }
     }
@@ -228,7 +279,10 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
     private fun getCurrentLocation(callback: (Location?) -> Unit) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            callback(null)
+            // Permission is not granted. Request for permission.
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                MY_PERMISSIONS_REQUEST_LOCATION)
             return
         }
 
@@ -257,8 +311,14 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
 
     private fun openParkingMap() {
-
+        val mapFragment = SupportMapFragment.newInstance().apply {
+            getMapAsync(this@MenuActivity)
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.map_fragment_container, mapFragment)
+            .commit()
     }
+
 
     private fun saveParkingLocation() {
         getCurrentLocation { location ->
