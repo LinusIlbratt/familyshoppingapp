@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +7,16 @@ plugins {
     id("kotlin-parcelize")
     id("kotlin-android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+}
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { stream ->
+        localProperties.load(stream)
+    }
+} else {
+    throw GradleException("local.properties file not found.")
 }
 
 android {
@@ -20,8 +32,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("string", "MAPS_API_KEY", "")
-
+        val mapsApiKey = localProperties.getProperty("MAPS_API_KEY")
+        if (mapsApiKey != null) {
+            buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        } else {
+            throw GradleException("MAPS_API_KEY not set in local.properties")
+        }
     }
 
     buildTypes {
