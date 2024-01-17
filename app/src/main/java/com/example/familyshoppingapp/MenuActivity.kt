@@ -30,6 +30,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -46,6 +47,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     private lateinit var user: User
     private var closeButton: Button? = null
     private var saveLocationButton: Button? = null
+    private var userLocationMarker: Marker? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,7 +114,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 val userLatLng = LatLng(it.latitude, it.longitude)
                 googleMap.apply {
                     moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 18f)) // Zoom level
-                    addMarker(MarkerOptions().position(userLatLng).title("Your position"))
+                    userLocationMarker = addMarker(MarkerOptions().position(userLatLng).title("Your Position"))
 
                     // Check if location permission is granted
                     if (ActivityCompat.checkSelfPermission(this@MenuActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -347,8 +349,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         saveLocationButton = Button(this).apply {
             text = "Save Location"
             setOnClickListener {
-                // Spara longitude/latitude
-                // saveCurrentLocation()
+                saveParkingLocation()
             }
             frameLayout.addView(this, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -379,24 +380,22 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
 
     private fun saveParkingLocation() {
-        getCurrentLocation { location ->
-            location?.let {
-                val parkingLocation = ParkingLocation(
-                    user.userId,
-                    it.latitude,
-                    it.longitude,
-                    System.currentTimeMillis()
-                )
-                parkingHero(user, parkingLocation)
-            } ?: run {
-                Toast.makeText(
-                    this,
-                    "Could not find the location, please try again",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+        userLocationMarker?.let { marker ->
+            val latitude = marker.position.latitude
+            val longitude = marker.position.longitude
+
+            val parkingLocation = ParkingLocation(
+                userId = user.userId,
+                latitude = latitude,
+                longitude = longitude,
+                timestamp = System.currentTimeMillis()
+            )
+
+            parkingHero(user, parkingLocation)
         }
     }
+
+
 
     private fun findParkingLocation() {
         FirebaseFirestore.getInstance().collection("parkingLocations")
