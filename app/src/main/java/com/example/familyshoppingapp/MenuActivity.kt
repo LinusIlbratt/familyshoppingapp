@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -17,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -42,6 +44,8 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     var productAdapterInterface: ProductAdapterInterface? = null
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var user: User
+    private var closeButton: Button? = null
+    private var saveLocationButton: Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,7 +112,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 val userLatLng = LatLng(it.latitude, it.longitude)
                 googleMap.apply {
                     moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 18f)) // Zoom level
-                    addMarker(MarkerOptions().position(userLatLng).title("Din Position"))
+                    addMarker(MarkerOptions().position(userLatLng).title("Your position"))
 
                     // Check if location permission is granted
                     if (ActivityCompat.checkSelfPermission(this@MenuActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -311,13 +315,67 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
 
     private fun openParkingMap() {
+        findViewById<FrameLayout>(R.id.map_fragment_container).visibility = View.VISIBLE
+
         val mapFragment = SupportMapFragment.newInstance().apply {
             getMapAsync(this@MenuActivity)
         }
         supportFragmentManager.beginTransaction()
             .replace(R.id.map_fragment_container, mapFragment)
             .commit()
+
+        addMapButtons()
     }
+
+    private fun addMapButtons() {
+        val frameLayout = findViewById<FrameLayout>(R.id.map_fragment_container)
+
+
+        closeButton = Button(this).apply {
+            text = "Close Map"
+            setOnClickListener {
+                removeMapFragmentAndButtons()
+            }
+            frameLayout.addView(this, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.TOP or Gravity.END
+            })
+        }
+
+
+        saveLocationButton = Button(this).apply {
+            text = "Save Location"
+            setOnClickListener {
+                // Spara longitude/latitude
+                // saveCurrentLocation()
+            }
+            frameLayout.addView(this, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT).apply {
+                gravity = Gravity.BOTTOM or Gravity.END
+            })
+        }
+    }
+
+    private fun removeMapFragmentAndButtons() {
+        val frameLayout = findViewById<FrameLayout>(R.id.map_fragment_container)
+
+        closeButton?.let {
+            frameLayout.removeView(it)
+            closeButton = null
+        }
+        saveLocationButton?.let {
+            frameLayout.removeView(it)
+            saveLocationButton = null
+        }
+
+        supportFragmentManager.findFragmentById(R.id.map_fragment_container)?.let {
+            supportFragmentManager.beginTransaction().remove(it).commit()
+        }
+    }
+
+
 
 
     private fun saveParkingLocation() {
