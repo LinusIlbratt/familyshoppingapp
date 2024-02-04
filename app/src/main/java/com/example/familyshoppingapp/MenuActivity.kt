@@ -3,6 +3,7 @@ package com.example.familyshoppingapp
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.location.Location
 import android.media.Image
 import android.net.Uri
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
@@ -114,7 +116,6 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
                 val userLatLng = LatLng(it.latitude, it.longitude)
                 googleMap.apply {
                     moveCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, 18f)) // Zoom level
-                    userLocationMarker = addMarker(MarkerOptions().position(userLatLng).title("Your Position"))
 
                     // Check if location permission is granted
                     if (ActivityCompat.checkSelfPermission(this@MenuActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -127,6 +128,17 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
             } ?: run {
                 // TODO: Handle if user location isn't possible
             }
+        }
+
+        try {
+
+            val success = googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json))
+
+            if (!success) {
+                Log.e("MapsActivity", "Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e("MapsActivity", "Can't find style. Error: ", e)
         }
     }
 
@@ -380,18 +392,22 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
 
     private fun saveParkingLocation() {
-        userLocationMarker?.let { marker ->
-            val latitude = marker.position.latitude
-            val longitude = marker.position.longitude
+        getCurrentLocation { location ->
+            location?.let {
+                val latitude = it.latitude
+                val longitude = it.longitude
 
-            val parkingLocation = ParkingLocation(
-                userId = user.userId,
-                latitude = latitude,
-                longitude = longitude,
-                timestamp = System.currentTimeMillis()
-            )
+                val parkingLocation = ParkingLocation(
+                    userId = user.userId,
+                    latitude = latitude,
+                    longitude = longitude,
+                    timestamp = System.currentTimeMillis()
+                )
 
-            parkingHero(user, parkingLocation)
+                parkingHero(user, parkingLocation)
+            } ?: run {
+                // TODO: Handle if user location is unavailable
+            }
         }
     }
 
