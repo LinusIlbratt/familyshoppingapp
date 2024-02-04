@@ -13,7 +13,7 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         app:cardCornerRadius="8dp"
-        app:cardBackgroundColor="@color/card_green"
+        app:cardBackgroundColor="@color/card_color"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -72,7 +72,7 @@
                 android:layout_marginBottom="5dp"
                 android:background="@drawable/fab_background"
                 android:clickable="true"
-                app:backgroundTint="#66BB6A"
+                app:backgroundTint="#16DEAC"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
