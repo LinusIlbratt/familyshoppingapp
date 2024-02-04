@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
-import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
@@ -19,7 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -33,7 +32,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -170,18 +168,18 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
     private fun initUIComponents() {
         // add all UI components here
 
-        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
-        btnHiddenGem.setOnClickListener {
+        val cardMyPlaces = findViewById<CardView>(R.id.card_my_places)
+        cardMyPlaces.setOnClickListener {
             showHiddenGemsFragment()
         }
 
-        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
-        btnCreateShoppingList.setOnClickListener {
+        val cardMyShoppingLists = findViewById<CardView>(R.id.card_my_shopping_lists)
+        cardMyShoppingLists.setOnClickListener {
             showShoppingListFragment()
         }
 
-        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
-        btnFindHiddenGem.setOnClickListener {
+        val cardMyDiscoveries = findViewById<CardView>(R.id.card_my_discoveries)
+        cardMyDiscoveries.setOnClickListener {
             showSearchHiddenGemsFragment()
         }
 
@@ -200,25 +198,25 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
     private fun setupBackStackListener() {
         val menuHeaderText = findViewById<TextView>(R.id.menu_titleText)
-        val hiddenGemTextView = findViewById<TextView>(R.id.hidden_gems_textView)
-        val createShoppingListTextView = findViewById<TextView>(R.id.create_shopping_list_textView)
-        val findHiddenGemTextView = findViewById<TextView>(R.id.search_hidden_gem_TextView)
+        val myPlacesTextView = findViewById<TextView>(R.id.my_places_textView)
+        val myShoppingListsTestView = findViewById<TextView>(R.id.my_shopping_lists_textView)
+        val myDiscoveriesTextView = findViewById<TextView>(R.id.my_discoveries_textView)
 
-        val btnHiddenGem = findViewById<ImageButton>(R.id.btn_HiddenGems)
-        val btnCreateShoppingList = findViewById<ImageButton>(R.id.btn_createShoppingList)
-        val btnFindHiddenGem = findViewById<ImageButton>(R.id.btn_findHiddenGems)
+        val cardMyPlaces = findViewById<CardView>(R.id.card_my_places)
+        val cardMyShoppingLists = findViewById<CardView>(R.id.card_my_shopping_lists)
+        val cardMyDiscoveries = findViewById<CardView>(R.id.card_my_discoveries)
         val listFragmentContainer = findViewById<FrameLayout>(R.id.list_fragment_container)
 
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount == 0) {
                 menuHeaderText.visibility = View.VISIBLE
-                hiddenGemTextView.visibility = View.VISIBLE
-                createShoppingListTextView.visibility = View.VISIBLE
-                findHiddenGemTextView.visibility = View.VISIBLE
+                myPlacesTextView.visibility = View.VISIBLE
+                myShoppingListsTestView.visibility = View.VISIBLE
+                myDiscoveriesTextView.visibility = View.VISIBLE
 
-                btnHiddenGem.visibility = View.VISIBLE
-                btnCreateShoppingList.visibility = View.VISIBLE
-                btnFindHiddenGem.visibility = View.VISIBLE
+                cardMyPlaces.visibility = View.VISIBLE
+                cardMyShoppingLists.visibility = View.VISIBLE
+                cardMyDiscoveries.visibility = View.VISIBLE
                 listFragmentContainer.visibility = View.GONE
             }
         }
@@ -227,13 +225,13 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
     private fun showHiddenGemsFragment() {
         findViewById<TextView>(R.id.menu_titleText).visibility = View.GONE
-        findViewById<TextView>(R.id.hidden_gems_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.create_shopping_list_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.search_hidden_gem_TextView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_places_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_shopping_lists_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_discoveries_textView).visibility = View.GONE
 
-        findViewById<ImageButton>(R.id.btn_HiddenGems).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_createShoppingList).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_findHiddenGems).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_places).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_shopping_lists).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_discoveries).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.VISIBLE
 
@@ -247,13 +245,13 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
     private fun showShoppingListFragment() {
         findViewById<TextView>(R.id.menu_titleText).visibility = View.GONE
-        findViewById<TextView>(R.id.hidden_gems_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.create_shopping_list_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.search_hidden_gem_TextView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_places_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_shopping_lists_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_discoveries_textView).visibility = View.GONE
 
-        findViewById<ImageButton>(R.id.btn_HiddenGems).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_createShoppingList).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_findHiddenGems).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_places).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_shopping_lists).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_discoveries).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.list_fragment_container).visibility = View.VISIBLE
 
@@ -268,13 +266,13 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
     private fun showSearchHiddenGemsFragment() {
         findViewById<TextView>(R.id.menu_titleText).visibility = View.GONE
-        findViewById<TextView>(R.id.hidden_gems_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.create_shopping_list_textView).visibility = View.GONE
-        findViewById<TextView>(R.id.search_hidden_gem_TextView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_places_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_shopping_lists_textView).visibility = View.GONE
+        findViewById<TextView>(R.id.my_discoveries_textView).visibility = View.GONE
 
-        findViewById<ImageButton>(R.id.btn_HiddenGems).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_createShoppingList).visibility = View.GONE
-        findViewById<ImageButton>(R.id.btn_findHiddenGems).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_places).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_shopping_lists).visibility = View.GONE
+        findViewById<CardView>(R.id.card_my_discoveries).visibility = View.GONE
 
         findViewById<FrameLayout>(R.id.search_gem_fragment_container).visibility = View.VISIBLE
         findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.GONE
