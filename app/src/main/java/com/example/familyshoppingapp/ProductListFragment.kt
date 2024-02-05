@@ -91,7 +91,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         }
     }
 
-    // När fragmentet inte längre är associerat med aktiviteten
+
     override fun onDetach() {
         super.onDetach()
         if (activity is MenuActivity) {

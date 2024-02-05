@@ -45,12 +45,14 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="30dp"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="#66BB6A"
+        android:backgroundTint="#064C68"
         android:clickable="true"
+        android:focusable="true"
+        app:fabSize="mini"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/recycler_view"
-        app:srcCompat="@drawable/baseline_add_24" />
+        app:srcCompat="@drawable/baseline_add_24"/>
 
     <ImageView
         android:id="@+id/backArrow"
@@ -65,10 +67,10 @@
     <Button
         android:id="@+id/resetAllButton"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_marginStart="30dp"
         android:layout_marginBottom="16dp"
-        android:background="#1976D2"
+        android:background="#064C68"
         android:fontFamily="@font/roboto"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"

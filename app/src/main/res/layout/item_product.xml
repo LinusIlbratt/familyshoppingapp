@@ -10,11 +10,13 @@
         android:id="@+id/buttonSubtract"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/buttonEdit"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/baseline_remove_24"
-        android:background="@drawable/btn_round_background"/>
+        android:background="@drawable/btn_round_background"
+        android:backgroundTint="#D0EF8383" />
 
     <ImageButton
         android:id="@+id/buttonAdd"
@@ -22,6 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
         android:background="@drawable/btn_round_background"
+        android:backgroundTint="#348357"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/buttonSubtract"
         app:layout_constraintTop_toTopOf="parent"
@@ -46,12 +49,12 @@
         android:id="@+id/amountTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="15dp"
+        android:layout_marginEnd="5dp"
         android:fontFamily="@font/poppins_bold_italic"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonEdit"
+        app:layout_constraintEnd_toStartOf="@+id/buttonAddToCart"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="x5" />
 
@@ -61,23 +64,20 @@
         android:layout_height="30dp"
         android:layout_marginEnd="10dp"
         android:background="@drawable/baseline_edit_24"
+        android:backgroundTint="#348357"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonAddToCart"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/buttonAddToCart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:padding="0dp"
         android:background="@drawable/btn_cart_background"
-        android:fontFamily="@font/poppins_medium"
-        android:gravity="center"
-        android:textSize="12sp"
+        android:backgroundTint="#348357"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="1.2"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.12"
         app:srcCompat="@drawable/baseline_check_24" />
 
 

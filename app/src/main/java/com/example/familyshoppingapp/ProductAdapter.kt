@@ -170,12 +170,14 @@ class ProductAdapter(
     }
 
     private fun showItemDeleteConfirm(context: Context, position: Int) {
-        AlertDialog.Builder(context)
-            .setTitle("Delete Product")
-            .setMessage("Do you want to delete this product?")
+        val inflater = LayoutInflater.from(context)
+        val view = inflater.inflate(R.layout.dialog_remove_shopping_list_item, null)
+
+        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
+        builder.setView(view)
             .setPositiveButton("Yes") { dialog, which ->
                 val id = shoppingItemList[position].documentId
-                id?.let { onDeleteClicked(it) } // Kontrollera denna rad
+                id?.let { onDeleteClicked(it) }
             }
             .setNegativeButton("No", null)
             .show()

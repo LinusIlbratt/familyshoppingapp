@@ -177,7 +177,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
         val editTextListName = popUpView.findViewById<EditText>(R.id.editTextListName)
         val editTextCategory = popUpView.findViewById<EditText>(R.id.editTextCategory)
 
-        AlertDialog.Builder(requireActivity())
+        AlertDialog.Builder(requireActivity(), R.style.CustomAlertDialog)
             .setView(popUpView)
             .setTitle("Create a new list")
             .setPositiveButton("Save") { dialog, which ->
