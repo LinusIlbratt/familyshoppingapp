@@ -13,7 +13,7 @@
     </style>
 
     <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="android:background">#072615</item>
+        <item name="android:background">#11555B</item>
         <item name="android:windowTitleStyle">@style/CustomAlertDialogTitle</item>
         <item name="buttonBarPositiveButtonStyle">@style/PositiveButtonStyle</item>
         <item name="buttonBarNegativeButtonStyle">@style/NegativeButtonStyle</item>

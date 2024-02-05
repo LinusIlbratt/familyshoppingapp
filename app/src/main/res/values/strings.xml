@@ -16,4 +16,7 @@
     <string name="welcome_to_the">Welcome to the</string>
     <string name="sign_in_with_google_button">Sign In with Google</string>
     <string name="menu_header_text"><![CDATA[Create, Navigate & Explore]]></string>
+    <string name="delete_product_item">Do you want to delete this product?</string>
+    <string name="delete_shopping_list_confirmation">Are you sure you want to delete the list \'%1$s\'?</string>
+    <string name="add_item_name_hint">Item name</string>
 </resources>

@@ -63,13 +63,13 @@ class MainActivity : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        findViewById<Button>(R.id.btn_email_sign_up).setOnClickListener {
-            showSignUpDialog()
-        }
-
-        findViewById<Button>(R.id.btn_email_sign_in).setOnClickListener {
-            showSignInDialog()
-        }
+//        findViewById<Button>(R.id.btn_email_sign_up).setOnClickListener {
+//            showSignUpDialog()
+//        }
+//
+//        findViewById<Button>(R.id.btn_email_sign_in).setOnClickListener {
+//            showSignInDialog()
+//        }
     }
 
     private fun showSignUpDialog() {

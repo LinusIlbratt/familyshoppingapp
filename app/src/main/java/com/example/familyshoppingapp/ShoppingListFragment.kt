@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -177,7 +178,7 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
         val editTextListName = popUpView.findViewById<EditText>(R.id.editTextListName)
         val editTextCategory = popUpView.findViewById<EditText>(R.id.editTextCategory)
 
-        AlertDialog.Builder(requireActivity())
+        AlertDialog.Builder(requireActivity(), R.style.CustomAlertDialog)
             .setView(popUpView)
             .setTitle("Create a new list")
             .setPositiveButton("Save") { dialog, which ->
@@ -227,9 +228,16 @@ class ShoppingListFragment : Fragment(), InviteDialogFragment.InvitationResponse
     }
 
     private fun showDeleteList(shoppingLists: ShoppingLists) {
-        AlertDialog.Builder(requireActivity())
+        val builder = AlertDialog.Builder(requireActivity(), R.style.CustomAlertDialog)
+        val inflater = requireActivity().layoutInflater
+        val dialogLayout = inflater.inflate(R.layout.dialog_custom_message_text, null)
+        val messageView = dialogLayout.findViewById<TextView>(R.id.dialog_message)
+
+        val message = getString(R.string.delete_shopping_list_confirmation, shoppingLists.name)
+        messageView.text = message
+
+        builder.setView(dialogLayout)
             .setTitle("Delete List")
-            .setMessage("Are you sure you want to delete the list '${shoppingLists.name}'?")
             .setPositiveButton("Delete") { dialog, which ->
                 deleteShoppingList(shoppingLists, user.userId)
             }

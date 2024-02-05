@@ -12,9 +12,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
@@ -170,12 +167,18 @@ class ProductAdapter(
     }
 
     private fun showItemDeleteConfirm(context: Context, position: Int) {
-        AlertDialog.Builder(context)
-            .setTitle("Delete Product")
-            .setMessage("Do you want to delete this product?")
+        val inflater = LayoutInflater.from(context)
+        val view = inflater.inflate(R.layout.dialog_custom_message_text, null)
+        val messageView = view.findViewById<TextView>(R.id.dialog_message)
+
+        val message = context.getString(R.string.delete_product_item)
+        messageView.text = message
+
+        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
+        builder.setView(view)
             .setPositiveButton("Yes") { dialog, which ->
                 val id = shoppingItemList[position].documentId
-                id?.let { onDeleteClicked(it) } // Kontrollera denna rad
+                id?.let { onDeleteClicked(it) }
             }
             .setNegativeButton("No", null)
             .show()
