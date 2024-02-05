@@ -1,7 +1,9 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Paint
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,11 +14,16 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.storage.FirebaseStorage
 
+
+interface OnGalleryIconClickListener {
+    fun onGalleryIconClick(item: ShoppingItem)
+}
 interface OnCameraIconClickListener {
     fun onCameraIconClick(item: ShoppingItem)
 }
@@ -30,6 +37,7 @@ class ProductAdapter(
     private val shoppingItemList: MutableList<ShoppingItem>,
     private val onDeleteClicked: (String) -> Unit,
     private val onCameraIconClickListener: OnCameraIconClickListener,
+    private val onGalleryIconClickListener: OnGalleryIconClickListener,
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -215,43 +223,73 @@ class ProductAdapter(
     }
 
     private fun showProductPopup(context: Context, item: ShoppingItem, onImageUpdatedListener: OnImageUpdatedListener): AlertDialog {
-        val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
         val dialogLayout = LayoutInflater.from(context).inflate(R.layout.product_popup, null)
         val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
         val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
+        val galleryIcon = dialogLayout.findViewById<ImageView>(R.id.galleryIcon)
 
-        // Skapa dialogen
-        builder.setView(dialogLayout).setPositiveButton("Close", null)
-        val dialog = builder.create()
+        // Create dialog popup
+        val dialog = AlertDialog.Builder(context, R.style.CustomAlertDialog)
+            .setView(dialogLayout)
+            .setPositiveButton("Close", null)
+            .create()
 
-        // Ladda bild om den finns
-        item.imageUrl?.let { imageUrl ->
-            Glide.with(context).load(imageUrl).into(uploadImageToImageView)
+        // Load image if there is one
+        loadProductImage(item.imageUrl, uploadImageToImageView, context)
+
+        // Handle long-press to delete iamge
+        setupImageLongClick(uploadImageToImageView, context, item, dialog)
+
+        // Handle click on Gallery Icon
+        setupGalleryIconClick(galleryIcon, item, dialog)
+
+        // Handle click on Camera Icon
+        setupCameraIconClick(imageViewCamera, item, dialog)
+
+        // Visa dialogen
+        dialog.show()
+        return dialog
+    }
+
+    private fun loadProductImage(imageUrl: String?, imageView: ImageView, context: Context) {
+        imageUrl?.let {
+            Glide.with(context).load(it).into(imageView)
         }
+    }
 
-        // Hantera långklick för att ta bort bild
-        uploadImageToImageView.setOnLongClickListener {
-            AlertDialog.Builder(context)
-                .setTitle("Remove Image")
-                .setMessage("Do you want to remove this image?")
+    private fun setupImageLongClick(imageView: ImageView, context: Context, item: ShoppingItem, dialog: AlertDialog) {
+        imageView.setOnLongClickListener {
+            val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
+            val dialogLayout = LayoutInflater.from(context).inflate(R.layout.dialog_custom_message_text, null)
+            val messageView = dialogLayout.findViewById<TextView>(R.id.dialog_message)
+
+            val message = context.getString(R.string.delete_image_confirmation_text)
+            messageView.text = message
+
+            builder.setView(dialogLayout)
                 .setPositiveButton("Yes") { _, _ ->
                     removeImage(item)
-                    dialog.dismiss() // Stäng huvuddialogen
+                    dialog.dismiss()
                 }
                 .setNegativeButton("No", null)
                 .show()
             true
         }
+    }
 
-        // Hantera klick på kameraikonen
-        imageViewCamera.setOnClickListener {
+
+    private fun setupGalleryIconClick(galleryIcon: ImageView, item: ShoppingItem, dialog: AlertDialog) {
+        galleryIcon.setOnClickListener {
+            onGalleryIconClickListener.onGalleryIconClick(item)
+            dialog.dismiss()
+        }
+    }
+
+    private fun setupCameraIconClick(imageView: ImageView, item: ShoppingItem, dialog: AlertDialog) {
+        imageView.setOnClickListener {
             onCameraIconClickListener.onCameraIconClick(item)
             dialog.dismiss() // Stäng huvuddialogen
         }
-
-        // Visa dialogen
-        dialog.show()
-        return dialog
     }
 
 

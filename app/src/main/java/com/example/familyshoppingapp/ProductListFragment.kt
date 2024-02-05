@@ -55,9 +55,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
     private lateinit var listId: String
     private lateinit var startCameraLauncher: ActivityResultLauncher<Intent>
     private val CAMERA_REQUEST_CODE = 100
+    private val GALLERY_IMAGE_REQUEST_CODE = 101
     private val storage = FirebaseStorage.getInstance()
     private val storageReference = storage.reference
-    private val currentImageUrl = MutableLiveData<String>()
     private val productImageUris = mutableMapOf<String, Uri>()
     private lateinit var productAdapter: ProductAdapter
     private val imageUpdateLiveData = MutableLiveData<String>()
@@ -122,7 +122,12 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 val item = shoppingItemList.find { it.documentId == documentId }
                 removeItemsFromDatabase(documentId, item?.imageUrl)
             },
-            this // OnCameraIconClickListener
+            this, // OnCameraIconClickListener
+            object : OnGalleryIconClickListener {
+                override fun onGalleryIconClick(item: ShoppingItem) {
+                    openDeviceGallery(item)
+                }
+            }
         )
 
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
@@ -201,6 +206,20 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == GALLERY_IMAGE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { imageUri ->
+                currentShoppingItem?.let { item ->
+                    uploadImageToFirestore(imageUri, item)
+                    currentShoppingItem = null // Nollställ den efter användning
+                    currentDialog?.dismiss()  // Stänger dialogrutan
+                }
+            }
+        }
+    }
+
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -249,6 +268,12 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         }
 
         super.onDestroy()
+    }
+
+    private fun openDeviceGallery(item: ShoppingItem) {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, GALLERY_IMAGE_REQUEST_CODE)
+        currentShoppingItem = item
     }
 
     private fun addItemsToDatabase(shoppingItem: ShoppingItem) {
