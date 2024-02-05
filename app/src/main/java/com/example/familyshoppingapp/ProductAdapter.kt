@@ -12,9 +12,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
@@ -171,7 +168,11 @@ class ProductAdapter(
 
     private fun showItemDeleteConfirm(context: Context, position: Int) {
         val inflater = LayoutInflater.from(context)
-        val view = inflater.inflate(R.layout.dialog_remove_shopping_list_item, null)
+        val view = inflater.inflate(R.layout.dialog_custom_message_text, null)
+        val messageView = view.findViewById<TextView>(R.id.dialog_message)
+
+        val message = context.getString(R.string.delete_product_item)
+        messageView.text = message
 
         val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
         builder.setView(view)
