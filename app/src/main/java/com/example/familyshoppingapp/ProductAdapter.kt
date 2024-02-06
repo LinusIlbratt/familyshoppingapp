@@ -19,11 +19,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.storage.FirebaseStorage
+import java.util.Collections
 
 
 interface OnGalleryIconClickListener {
     fun onGalleryIconClick(item: ShoppingItem)
 }
+
 interface OnCameraIconClickListener {
     fun onCameraIconClick(item: ShoppingItem)
 }
@@ -48,6 +50,12 @@ class ProductAdapter(
         val buttonAdd: ImageButton = view.findViewById(R.id.buttonAdd)
         val buttonSubtract: ImageButton = view.findViewById(R.id.buttonSubtract)
     }
+
+    interface OnItemMoveCompleteListener {
+        fun onItemMoveCompleted()
+    }
+
+    var onItemMoveCompleteListener: OnItemMoveCompleteListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val itemView =
@@ -222,9 +230,14 @@ class ProductAdapter(
         notifyDataSetChanged()
     }
 
-    private fun showProductPopup(context: Context, item: ShoppingItem, onImageUpdatedListener: OnImageUpdatedListener): AlertDialog {
+    private fun showProductPopup(
+        context: Context,
+        item: ShoppingItem,
+        onImageUpdatedListener: OnImageUpdatedListener
+    ): AlertDialog {
         val dialogLayout = LayoutInflater.from(context).inflate(R.layout.product_popup, null)
-        val uploadImageToImageView = dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
+        val uploadImageToImageView =
+            dialogLayout.findViewById<ImageView>(R.id.uploadImageToImageView)
         val imageViewCamera = dialogLayout.findViewById<ImageView>(R.id.cameraIcon)
         val galleryIcon = dialogLayout.findViewById<ImageView>(R.id.galleryIcon)
 
@@ -257,10 +270,16 @@ class ProductAdapter(
         }
     }
 
-    private fun setupImageLongClick(imageView: ImageView, context: Context, item: ShoppingItem, dialog: AlertDialog) {
+    private fun setupImageLongClick(
+        imageView: ImageView,
+        context: Context,
+        item: ShoppingItem,
+        dialog: AlertDialog
+    ) {
         imageView.setOnLongClickListener {
             val builder = AlertDialog.Builder(context, R.style.CustomAlertDialog)
-            val dialogLayout = LayoutInflater.from(context).inflate(R.layout.dialog_custom_message_text, null)
+            val dialogLayout =
+                LayoutInflater.from(context).inflate(R.layout.dialog_custom_message_text, null)
             val messageView = dialogLayout.findViewById<TextView>(R.id.dialog_message)
 
             val message = context.getString(R.string.delete_image_confirmation_text)
@@ -278,18 +297,40 @@ class ProductAdapter(
     }
 
 
-    private fun setupGalleryIconClick(galleryIcon: ImageView, item: ShoppingItem, dialog: AlertDialog) {
+    private fun setupGalleryIconClick(
+        galleryIcon: ImageView,
+        item: ShoppingItem,
+        dialog: AlertDialog
+    ) {
         galleryIcon.setOnClickListener {
             onGalleryIconClickListener.onGalleryIconClick(item)
             dialog.dismiss()
         }
     }
 
-    private fun setupCameraIconClick(imageView: ImageView, item: ShoppingItem, dialog: AlertDialog) {
+    private fun setupCameraIconClick(
+        imageView: ImageView,
+        item: ShoppingItem,
+        dialog: AlertDialog
+    ) {
         imageView.setOnClickListener {
             onCameraIconClickListener.onCameraIconClick(item)
             dialog.dismiss() // Stäng huvuddialogen
         }
+    }
+
+    fun onItemMove(fromPosition: Int, toPosition: Int) {
+        if (fromPosition < toPosition) {
+            for (i in fromPosition until toPosition) {
+                Collections.swap(shoppingItemList, i, i + 1)
+            }
+        } else {
+            for (i in fromPosition downTo toPosition + 1) {
+                Collections.swap(shoppingItemList, i, i - 1)
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition)
+        // Här kan du också anropa en callback-funktion eller direkt spara den nya ordningen
     }
 
 
