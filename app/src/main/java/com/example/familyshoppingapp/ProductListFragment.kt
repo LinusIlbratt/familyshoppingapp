@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -43,7 +44,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-class ProductListFragment : Fragment(), OnCameraIconClickListener {
+class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapter.OnItemMoveCompleteListener {
 
     private val database = Firebase.firestore
     private val productsRef = database.collection("products")
@@ -118,8 +119,7 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         adapter = ProductAdapter(
             productsRef,
             shoppingItemList,
-            { documentId ->
-                val item = shoppingItemList.find { it.documentId == documentId }
+            { documentId -> val item = shoppingItemList.find { it.documentId == documentId }
                 removeItemsFromDatabase(documentId, item?.imageUrl)
             },
             this, // OnCameraIconClickListener
@@ -128,7 +128,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                     openDeviceGallery(item)
                 }
             }
-        )
+        ).also {
+            it.onItemMoveCompleteListener = this@ProductListFragment // Explicit referens
+        }
 
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
@@ -148,6 +150,17 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         floatingButton.setOnClickListener {
 
             addNewItemPopUpWindow()
+        }
+
+        val itemMoveCallback = ItemMoveCallback(adapter) {
+            updateOrderAfterMove() // Denna metod anropas när en flytt är slutförd
+        }
+        val itemTouchHelper = ItemTouchHelper(itemMoveCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+
+        val savedOrder = PreferencesManager.loadProductOrder(requireContext()) ?: listOf()
+        if (savedOrder.isNotEmpty()) {
+            reorderShoppingListBasedOnSavedOrder(savedOrder)
         }
 
         setupSnapshotListener()
@@ -201,9 +214,14 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
                 override fun onEvent(eventType: Int, params: Bundle?) {
 
                 }
-                // Implementera andra metoder i RecognitionListener
+
             })
         }
+    }
+
+    override fun onItemMoveCompleted() {
+        val newOrder = shoppingItemList.mapNotNull { it.documentId }
+        saveProductOrder(newOrder)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -246,16 +264,22 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         snapshotListener = productsRef.whereEqualTo("listId", listId)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    Log.d("!!!", "Line 70, Second Activity. Error loading items:")
+                    Log.w("ProductListFragment", "Listen failed.", e)
                     return@addSnapshotListener
                 }
-                shoppingItemList.clear()
-                snapshot?.forEach { document ->
-                    val item = document.toObject<ShoppingItem>().copy(documentId = document.id)
-                    if (item.listId == listId) {
-                        shoppingItemList.add(item)
-                    }
+
+                val items = snapshot?.documents?.mapNotNull { it.toObject(ShoppingItem::class.java)?.copy(documentId = it.id) } ?: emptyList()
+                val savedOrder = loadProductOrder()
+
+                // Sortera items baserat på den sparade ordningen
+                val sortedList = if (savedOrder.isNotEmpty()) {
+                    items.sortedBy { savedOrder.indexOf(it.documentId) }
+                } else {
+                    items
                 }
+
+                shoppingItemList.clear()
+                shoppingItemList.addAll(sortedList)
                 adapter.notifyDataSetChanged()
             }
     }
@@ -475,6 +499,45 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener {
         if (::productAdapter.isInitialized) {
             productAdapter.updateProductImage(documentId, imageUrl)
         }
+    }
+
+    private fun updateOrderAfterMove() {
+        Log.d("!!!", "Updating order after move")
+        val newOrder = shoppingItemList.mapNotNull { it.documentId }
+        saveProductOrder(newOrder)
+    }
+
+    private fun saveProductOrder(productIds: List<String>) {
+        val joinedIds = productIds.joinToString(",")
+        activity?.getSharedPreferences("ProductOrderPrefs", Context.MODE_PRIVATE)?.edit()?.apply {
+            putString("order_$listId", joinedIds)
+            apply()
+        }
+    }
+
+    private fun loadProductOrder(): List<String> {
+        val prefs = activity?.getSharedPreferences("ProductOrderPrefs", Context.MODE_PRIVATE)
+        val orderString = prefs?.getString("order_$listId", null)
+        return orderString?.split(",") ?: listOf()
+    }
+
+    private fun reorderShoppingListBasedOnSavedOrder(savedOrder: List<String>) {
+
+        val reorderedList = mutableListOf<ShoppingItem>()
+
+        savedOrder.forEach { id ->
+            shoppingItemList.find { it.documentId == id }?.let {
+                reorderedList.add(it)
+            }
+        }
+
+
+        shoppingItemList.filterNot { it.documentId in savedOrder }.also { reorderedList.addAll(it) }
+
+        shoppingItemList.clear()
+        shoppingItemList.addAll(reorderedList)
+
+        adapter.notifyDataSetChanged()
     }
 
     companion object {
