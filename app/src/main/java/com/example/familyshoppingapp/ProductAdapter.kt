@@ -1,9 +1,7 @@
 package com.example.familyshoppingapp
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Paint
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +12,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.CollectionReference
@@ -64,13 +61,19 @@ class ProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val currentItem = shoppingItemList[position]
+        val currentItem = shoppingItemList[holder.adapterPosition]
         holder.textViewProductName.text = currentItem.name
         holder.amountTextView.text = "x${currentItem.quantity}"
+
+        updateItemAppearanceBasedOnItemInCart(currentItem, holder)
 
         holder.buttonAdd.setOnClickListener {
             currentItem.quantity += 1
             holder.amountTextView.text = "x${currentItem.quantity}"
+            // Update the object in firestore
+            currentItem.documentId?.let { documentId ->
+                updateItemInDatabase(documentId, currentItem)
+            }
         }
 
         holder.textViewProductName.setOnClickListener {
@@ -84,56 +87,38 @@ class ProductAdapter(
         }
 
         holder.buttonSubtract.setOnClickListener {
-            val currentItem = shoppingItemList[position]
             if (currentItem.quantity > 1) {
-
                 currentItem.quantity -= 1
                 holder.amountTextView.text = "x${currentItem.quantity}"
                 currentItem.documentId?.let { documentId ->
                     updateItemInDatabase(documentId, currentItem)
                 }
             } else {
-
-                showItemDeleteConfirm(holder.itemView.context, position)
+                showItemDeleteConfirm(holder.itemView.context, holder.adapterPosition)
             }
-        }
-
-        // Change alpha value if a product is added to the cart
-        if (currentItem.isAdded) {
-            holder.itemView.alpha = 0.5f
-            holder.textViewProductName.paintFlags =
-                holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-        } else {
-            holder.itemView.alpha = 1.0f
-            holder.textViewProductName.paintFlags =
-                holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
         }
 
         holder.buttonAddToCart.setOnClickListener {
-            val currentItem = shoppingItemList[position]
             currentItem.isAdded = !currentItem.isAdded
-
-            if (currentItem.isAdded) {
-                holder.itemView.alpha = 0.5f
-                holder.textViewProductName.paintFlags =
-                    holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            } else {
-                holder.itemView.alpha = 1.0f
-                holder.textViewProductName.paintFlags =
-                    holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            }
-
-            currentItem.documentId?.let { documentId ->
-                updateItemInDatabase(documentId, currentItem)
-            }
+            updateItemAppearanceBasedOnItemInCart(currentItem, holder)
+            currentItem.documentId?.let { it1 -> updateItemInDatabase(it1, currentItem) }
         }
 
         holder.buttonEdit.setOnClickListener {
-            val currentItem = shoppingItemList[position]
-            val context = holder.itemView.context
-            showEditPopUp(context, currentItem, position)
+            val item = shoppingItemList[holder.adapterPosition]
+            showEditPopUp(holder.itemView.context, item, holder.adapterPosition)
         }
 
+    }
+
+    private fun updateItemAppearanceBasedOnItemInCart(currentItem: ShoppingItem, holder: ProductViewHolder) {
+        if (currentItem.isAdded) {
+            holder.itemView.alpha = 0.5f
+            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        } else {
+            holder.itemView.alpha = 1.0f
+            holder.textViewProductName.paintFlags = holder.textViewProductName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+        }
     }
 
     override fun getItemCount() = shoppingItemList.size
@@ -155,24 +140,25 @@ class ProductAdapter(
         val inflater = LayoutInflater.from(context)
         val dialogLayout = inflater.inflate(R.layout.edit_item, null)
         val editText = dialogLayout.findViewById<EditText>(R.id.editItemName)
-
         editText.setText(item.name)
 
         builder.setView(dialogLayout)
             .setPositiveButton("Save") { dialog, which ->
                 val newName = editText.text.toString()
                 if (newName.isNotEmpty() && newName != item.name) {
-                    item.name = newName // Update name
-                    shoppingItemList[position] = item // Update list
-                    notifyItemChanged(position)
+                    item.name = newName // Uppdatera namnet på objektet
+                    shoppingItemList[position].name = newName // Uppdatera listan
+                    notifyItemChanged(position) // Meddela adaptern att uppdatera vyn
                     item.documentId?.let { documentId ->
-                        updateItemInDatabase(documentId, item)
+                        updateItemInDatabase(documentId, item) // Uppdatera objektet i databasen
                     }
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
+
+
 
     fun updateProductImage(documentId: String, imageUrl: String) {
         val index = shoppingItemList.indexOfFirst { it.documentId == documentId }
@@ -320,17 +306,9 @@ class ProductAdapter(
     }
 
     fun onItemMove(fromPosition: Int, toPosition: Int) {
-        if (fromPosition < toPosition) {
-            for (i in fromPosition until toPosition) {
-                Collections.swap(shoppingItemList, i, i + 1)
-            }
-        } else {
-            for (i in fromPosition downTo toPosition + 1) {
-                Collections.swap(shoppingItemList, i, i - 1)
-            }
-        }
+        Collections.swap(shoppingItemList, fromPosition, toPosition)
         notifyItemMoved(fromPosition, toPosition)
-        // Här kan du också anropa en callback-funktion eller direkt spara den nya ordningen
+        onItemMoveCompleteListener?.onItemMoveCompleted()
     }
 
 

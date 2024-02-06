@@ -119,11 +119,13 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
         adapter = ProductAdapter(
             productsRef,
             shoppingItemList,
-            { documentId -> /* Kod */ },
+            { documentId -> val item = shoppingItemList.find { it.documentId == documentId }
+                removeItemsFromDatabase(documentId, item?.imageUrl)
+            },
             this, // OnCameraIconClickListener
             object : OnGalleryIconClickListener {
                 override fun onGalleryIconClick(item: ShoppingItem) {
-                    // Kod
+                    openDeviceGallery(item)
                 }
             }
         ).also {
@@ -218,9 +220,8 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
     }
 
     override fun onItemMoveCompleted() {
-        val context = requireContext()
-        val productIds = shoppingItemList.mapNotNull { it.documentId }
-        PreferencesManager.saveProductOrder(context, productIds)
+        val newOrder = shoppingItemList.mapNotNull { it.documentId }
+        saveProductOrder(newOrder)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
