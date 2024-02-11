@@ -33,6 +33,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.ListenerRegistration
@@ -44,7 +46,8 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapter.OnItemMoveCompleteListener {
+class ProductListFragment : Fragment(), OnCameraIconClickListener,
+    ProductAdapter.OnItemMoveCompleteListener {
 
     private val database = Firebase.firestore
     private val productsRef = database.collection("products")
@@ -67,16 +70,17 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        startCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                currentShoppingItem?.let { item ->
-                    productImageUris[item.documentId]?.let { uri ->
-                        uploadImageToFirestore(uri, item)
-                        currentDialog?.dismiss()  // Stänger dialogrutan
+        startCameraLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    currentShoppingItem?.let { item ->
+                        productImageUris[item.documentId]?.let { uri ->
+                            uploadImageToFirestore(uri, item)
+                            currentDialog?.dismiss()  // Stänger dialogrutan
+                        }
                     }
                 }
             }
-        }
 
         requestMicrophonePermission()
     }
@@ -119,7 +123,8 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
         adapter = ProductAdapter(
             productsRef,
             shoppingItemList,
-            { documentId -> val item = shoppingItemList.find { it.documentId == documentId }
+            { documentId ->
+                val item = shoppingItemList.find { it.documentId == documentId }
                 removeItemsFromDatabase(documentId, item?.imageUrl)
             },
             this, // OnCameraIconClickListener
@@ -135,6 +140,11 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+
+        val deleteIcon = view.findViewById<ImageView>(R.id.delete_all_items_in_list)
+        deleteIcon.setOnClickListener {
+            showDeleteAllItemsConfirmationDialog()
         }
 
         val resetButton = view.findViewById<Button>(R.id.resetAllButton)
@@ -198,14 +208,22 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
                 }
 
                 override fun onResults(results: Bundle) {
-                    val spokenText =
-                        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.get(0)
-                            ?: ""
-                    if (spokenText.isNotBlank()) {
-                        val newItem = ShoppingItem(name = spokenText, listId = listId)
-                        addItemsToDatabase(newItem)
+                    val spokenTextList =
+                        results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    if (!spokenTextList.isNullOrEmpty()) {
+                        var spokenText = spokenTextList[0] // Ta första matchningen
+                        // Modifiera så att första bokstaven alltid är en stor bokstav
+                        spokenText =
+                            spokenText.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+                        // Kontrollera igen att strängen inte är tom efter trimning
+                        if (spokenText.isNotBlank()) {
+                            val newItem = ShoppingItem(name = spokenText, listId = listId)
+                            addItemsToDatabase(newItem)
+                        }
                     }
                 }
+
 
                 override fun onPartialResults(partialResults: Bundle?) {
 
@@ -268,7 +286,9 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
                     return@addSnapshotListener
                 }
 
-                val items = snapshot?.documents?.mapNotNull { it.toObject(ShoppingItem::class.java)?.copy(documentId = it.id) } ?: emptyList()
+                val items = snapshot?.documents?.mapNotNull {
+                    it.toObject(ShoppingItem::class.java)?.copy(documentId = it.id)
+                } ?: emptyList()
                 val savedOrder = loadProductOrder()
 
                 // Sortera items baserat på den sparade ordningen
@@ -325,7 +345,10 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
 
         builder.setView(dialogLayout)
             .setPositiveButton("Add") { dialog, which ->
-                val itemName = editItemName.text.toString()
+                var itemName = editItemName.text.toString().trim()
+                // Se till att första bokstaven alltid är stor
+                itemName =
+                    itemName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
                 if (itemName.isBlank()) {
                     Toast.makeText(
@@ -339,10 +362,11 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
                 }
             }
             .setNegativeButton("Close") { dialog, which ->
-                // Inget behov av att skriva någon kod här, dialogrutan stängs automatiskt
+                // Ingen handling behövs här, dialogen stängs automatiskt
             }
         builder.show()
     }
+
 
     private fun removeItemsFromDatabase(documentId: String, imageUrl: String?) {
         Log.d("!!!", "Försöker ta bort dokument och bild: $documentId")
@@ -366,6 +390,59 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
                 Log.e("!!!", "Error removing document: $documentId", e)
             }
     }
+
+    private fun showDeleteAllItemsConfirmationDialog() {
+        val dialogBuilder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+        dialogBuilder
+            .setCancelable(false)
+            .setPositiveButton("Yes") { dialog, id ->
+                removeAllItemsAndImages(listId)
+            }
+            .setNegativeButton("No") { dialog, id ->
+                dialog.dismiss()
+            }
+
+        val alert = dialogBuilder.create()
+        alert.setTitle("Are you sure you want to clear your list?")
+        alert.show()
+    }
+
+    private fun removeAllItemsAndImages(listId: String) {
+        // Först, hämta alla produkter för den givna listan
+        productsRef.whereEqualTo("listId", listId).get().addOnSuccessListener { documents ->
+            // Skapa en batch för att ta bort alla produkter
+            val batch = productsRef.firestore.batch()
+            val imageDeleteTasks = mutableListOf<Task<Void>>()
+
+            for (document in documents) {
+                // Lägg till varje produkt i batchen för borttagning
+                batch.delete(document.reference)
+
+                // Kontrollera och planera borttagning av associerad bild
+                document.getString("imageUrl")?.let { imageUrl ->
+                    val imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+                    imageDeleteTasks.add(imageRef.delete())
+                }
+            }
+
+            // Utför batchoperationen för att ta bort alla produkter
+            batch.commit().addOnSuccessListener {
+                Log.d("BatchDelete", "Alla produkter borttagna")
+            }.addOnFailureListener {
+                Log.e("BatchDelete", "Fel vid borttagning av produkter", it)
+            }
+
+            // Asynkront ta bort alla associerade bilder
+            Tasks.whenAll(imageDeleteTasks).addOnSuccessListener {
+                Log.d("ImageDelete", "Alla bilder borttagna")
+            }.addOnFailureListener {
+                Log.e("ImageDelete", "Fel vid borttagning av bilder", it)
+            }
+        }.addOnFailureListener {
+            Log.e("FetchProducts", "Fel vid hämtning av produkter", it)
+        }
+    }
+
 
     private fun startVoiceRecognition() {
         if (ContextCompat.checkSelfPermission(
@@ -459,9 +536,15 @@ class ProductListFragment : Fragment(), OnCameraIconClickListener, ProductAdapte
 
                     // Uppdatera produktbilden i ProductListFragment
                     (activity as? MenuActivity)?.let { activity ->
-                        val currentFragment = activity.supportFragmentManager.findFragmentById(R.id.list_fragment_container)
+                        val currentFragment =
+                            activity.supportFragmentManager.findFragmentById(R.id.list_fragment_container)
                         if (currentFragment is ProductListFragment) {
-                            item.documentId?.let { it1 -> currentFragment.updateProductImage(it1, imageUrl) }
+                            item.documentId?.let { it1 ->
+                                currentFragment.updateProductImage(
+                                    it1,
+                                    imageUrl
+                                )
+                            }
                         }
                     }
                 }
