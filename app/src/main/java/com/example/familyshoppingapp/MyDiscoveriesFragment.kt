@@ -29,7 +29,7 @@ class MyDiscoveriesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val onItemClicked: (HiddenGem) -> Unit = { hiddenGem ->
+        val onItemClicked: (MyPlace) -> Unit = { hiddenGem ->
             Log.d("!!!", "Item clicked: ${hiddenGem.name}")
             openSearchHiddenGemsFragment(hiddenGem)
         }
@@ -74,7 +74,7 @@ class MyDiscoveriesFragment : Fragment() {
             .get()
             .addOnSuccessListener { documents ->
                 val searchResults = documents.mapNotNull { document ->
-                    document.toObject(HiddenGem::class.java)
+                    document.toObject(MyPlace::class.java)
                 }
                 updateRecyclerView(searchResults)
             }
@@ -84,8 +84,8 @@ class MyDiscoveriesFragment : Fragment() {
             }
     }
 
-    private fun openSearchHiddenGemsFragment(hiddenGem: HiddenGem) {
-        val detailFragment = MyDiscoveriesInfoFragment.newInstance(hiddenGem)
+    private fun openSearchHiddenGemsFragment(myPlace: MyPlace) {
+        val detailFragment = MyDiscoveriesInfoFragment.newInstance(myPlace)
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.search_gem_fragment_container, detailFragment)
@@ -95,11 +95,11 @@ class MyDiscoveriesFragment : Fragment() {
 
 
 
-    private fun updateRecyclerView(newHiddenGems: List<HiddenGem>) {
-        if (newHiddenGems.isEmpty()) {
+    private fun updateRecyclerView(newMyPlaces: List<MyPlace>) {
+        if (newMyPlaces.isEmpty()) {
             Toast.makeText(context, "No result found.", Toast.LENGTH_LONG).show()
         } else {
-            adapter.updateData(newHiddenGems)
+            adapter.updateData(newMyPlaces)
         }
     }
 

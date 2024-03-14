@@ -8,18 +8,18 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 
-class MyDiscoveriesAdapter(private var hiddenGems: List<HiddenGem>, private val onItemClicked: (HiddenGem) -> Unit) :
+class MyDiscoveriesAdapter(private var myPlaces: List<MyPlace>, private val onItemClicked: (MyPlace) -> Unit) :
     RecyclerView.Adapter<MyDiscoveriesAdapter.ViewHolder>() {
 
-    class ViewHolder(view: View, private val onItemClicked: (HiddenGem) -> Unit) : RecyclerView.ViewHolder(view) {
+    class ViewHolder(view: View, private val onItemClicked: (MyPlace) -> Unit) : RecyclerView.ViewHolder(view) {
         val textView: TextView = view.findViewById(R.id.text_view_search_result)
 
-        fun bind(hiddenGem: HiddenGem) {
-            textView.text = hiddenGem.name
+        fun bind(myPlace: MyPlace) {
+            textView.text = myPlace.name
 
             itemView.setOnClickListener {
-                Log.d("!!!", "Clicked on: ${hiddenGem.name}")
-                onItemClicked(hiddenGem)
+                Log.d("!!!", "Clicked on: ${myPlace.name}")
+                onItemClicked(myPlace)
             }
         }
     }
@@ -30,14 +30,14 @@ class MyDiscoveriesAdapter(private var hiddenGems: List<HiddenGem>, private val 
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val hiddenGem = hiddenGems[position]
+        val hiddenGem = myPlaces[position]
         holder.bind(hiddenGem)
     }
 
-    override fun getItemCount() = hiddenGems.size
+    override fun getItemCount() = myPlaces.size
 
-    fun updateData(newHiddenGems: List<HiddenGem>) {
-        hiddenGems = newHiddenGems
+    fun updateData(newMyPlaces: List<MyPlace>) {
+        myPlaces = newMyPlaces
         notifyDataSetChanged()
     }
 }

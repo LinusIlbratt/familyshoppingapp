@@ -17,12 +17,12 @@ import com.google.android.gms.maps.model.LatLng
 
 class MyDiscoveriesInfoFragment : Fragment() {
 
-    private lateinit var hiddenGem: HiddenGem
+    private lateinit var myPlace: MyPlace
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            hiddenGem = it.getParcelable(HIDDEN_GEM)
+            myPlace = it.getParcelable(HIDDEN_GEM)
                 ?: throw IllegalArgumentException("Hidden Gem is required")
         }
     }
@@ -53,20 +53,20 @@ class MyDiscoveriesInfoFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
-        val photoHolder = view.findViewById<ImageView>(R.id.hidden_gem_detail_photoHolder)
+        val photoHolder = view.findViewById<ImageView>(R.id.my_places_detail_photoHolder)
 
         val titleTextView = view.findViewById<TextView>(R.id.detail_title)
-        titleTextView.text = hiddenGem.name
+        titleTextView.text = myPlace.name
 
         val descriptionTextView = view.findViewById<TextView>(R.id.detail_description_textView)
-        descriptionTextView.text = hiddenGem.description
+        descriptionTextView.text = myPlace.description
 
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        hiddenGem.imageUrl?.let { imageUrl ->
+        myPlace.imageUrl?.let { imageUrl ->
             Glide.with(this)
                 .load(imageUrl)
                 .into(photoHolder)
@@ -81,7 +81,7 @@ class MyDiscoveriesInfoFragment : Fragment() {
     }
 
     private fun showDirectionsInGoogleMap() {
-        val destination = LatLng(hiddenGem.latitude, hiddenGem.longitude)
+        val destination = LatLng(myPlace.latitude, myPlace.longitude)
 
         val intentUri = Uri.parse(
             "https://www.google.com/maps/dir/?api=1&destination=" +
@@ -102,9 +102,9 @@ class MyDiscoveriesInfoFragment : Fragment() {
     companion object {
         private const val HIDDEN_GEM = "hidden_gem"
 
-        fun newInstance(hiddenGem: HiddenGem): MyDiscoveriesInfoFragment {
+        fun newInstance(myPlace: MyPlace): MyDiscoveriesInfoFragment {
             val args = Bundle().apply {
-                putParcelable(HIDDEN_GEM, hiddenGem)
+                putParcelable(HIDDEN_GEM, myPlace)
             }
             return MyDiscoveriesInfoFragment().apply {
                 arguments = args
