@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,7 +15,7 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.model.LatLng
 
-class SearchHiddenGemInfoFragment : Fragment() {
+class MyDiscoveriesInfoFragment : Fragment() {
 
     private lateinit var hiddenGem: HiddenGem
 
@@ -103,11 +102,11 @@ class SearchHiddenGemInfoFragment : Fragment() {
     companion object {
         private const val HIDDEN_GEM = "hidden_gem"
 
-        fun newInstance(hiddenGem: HiddenGem): SearchHiddenGemInfoFragment {
+        fun newInstance(hiddenGem: HiddenGem): MyDiscoveriesInfoFragment {
             val args = Bundle().apply {
                 putParcelable(HIDDEN_GEM, hiddenGem)
             }
-            return SearchHiddenGemInfoFragment().apply {
+            return MyDiscoveriesInfoFragment().apply {
                 arguments = args
             }
         }

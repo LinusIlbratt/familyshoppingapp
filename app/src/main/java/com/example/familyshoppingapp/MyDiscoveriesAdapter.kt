@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 
-class SearchHiddenGemsAdapter(private var hiddenGems: List<HiddenGem>, private val onItemClicked: (HiddenGem) -> Unit) :
-    RecyclerView.Adapter<SearchHiddenGemsAdapter.ViewHolder>() {
+class MyDiscoveriesAdapter(private var hiddenGems: List<HiddenGem>, private val onItemClicked: (HiddenGem) -> Unit) :
+    RecyclerView.Adapter<MyDiscoveriesAdapter.ViewHolder>() {
 
     class ViewHolder(view: View, private val onItemClicked: (HiddenGem) -> Unit) : RecyclerView.ViewHolder(view) {
         val textView: TextView = view.findViewById(R.id.text_view_search_result)

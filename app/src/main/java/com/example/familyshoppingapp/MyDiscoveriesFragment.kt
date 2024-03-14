@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 
-class SearchHiddenGemsFragment : Fragment() {
+class MyDiscoveriesFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: SearchHiddenGemsAdapter
+    private lateinit var adapter: MyDiscoveriesAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,7 +40,7 @@ class SearchHiddenGemsFragment : Fragment() {
         }
 
         recyclerView = view.findViewById(R.id.recyclerView_search_results)
-        adapter = SearchHiddenGemsAdapter(emptyList(), onItemClicked)
+        adapter = MyDiscoveriesAdapter(emptyList(), onItemClicked)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
@@ -57,7 +57,7 @@ class SearchHiddenGemsFragment : Fragment() {
                 return false
             }
         })
-        adapter = SearchHiddenGemsAdapter(emptyList()) { hiddenGem ->
+        adapter = MyDiscoveriesAdapter(emptyList()) { hiddenGem ->
             openSearchHiddenGemsFragment(hiddenGem)
         }
         recyclerView.adapter = adapter
@@ -85,7 +85,7 @@ class SearchHiddenGemsFragment : Fragment() {
     }
 
     private fun openSearchHiddenGemsFragment(hiddenGem: HiddenGem) {
-        val detailFragment = SearchHiddenGemInfoFragment.newInstance(hiddenGem)
+        val detailFragment = MyDiscoveriesInfoFragment.newInstance(hiddenGem)
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.search_gem_fragment_container, detailFragment)

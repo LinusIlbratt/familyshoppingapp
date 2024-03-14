@@ -45,7 +45,7 @@ import java.util.Locale
 import java.util.UUID
 
 
-class HiddenGemDetailFragment : Fragment() {
+class MyPlacesDetailFragment : Fragment() {
     private lateinit var hiddenGem: HiddenGem
     private lateinit var descriptionEditText: EditText
     private lateinit var editButton: Button
@@ -546,11 +546,11 @@ class HiddenGemDetailFragment : Fragment() {
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
         const val CAMERA_REQUEST_CODE = 101
 
-        fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): HiddenGemDetailFragment {
+        fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): MyPlacesDetailFragment {
             val args = Bundle().apply {
                 putParcelable(HIDDEN_GEM, hiddenGem)
             }
-            return HiddenGemDetailFragment().apply {
+            return MyPlacesDetailFragment().apply {
                 arguments = args
             }
         }

@@ -17,7 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
+class MyPlacesFragment : Fragment(), OnHiddenGemClickListener {
 
     private lateinit var hiddenGemsAdapter: HiddenGemsAdapter
     private lateinit var recyclerView: RecyclerView
@@ -185,7 +185,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
     override fun onHiddenGemClicked(hiddenGem: HiddenGem) {
         Log.d("detail", "Hidden Gem clicked: ${hiddenGem.name}")
-        val detailFragment = HiddenGemDetailFragment.newInstance(hiddenGem)
+        val detailFragment = MyPlacesDetailFragment.newInstance(hiddenGem)
         activity?.supportFragmentManager?.beginTransaction()
             ?.replace(R.id.hidden_gem_fragment_container, detailFragment)
             ?.addToBackStack(null)
