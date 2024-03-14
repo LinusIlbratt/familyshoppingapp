@@ -17,9 +17,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 
-class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
+class MyPlacesFragment : Fragment(), OnMyPlacesClickListener {
 
-    private lateinit var hiddenGemsAdapter: HiddenGemsAdapter
+    private lateinit var myPlacesAdapter: MyPlacesAdapter
     private lateinit var recyclerView: RecyclerView
     private var firestoreListener: ListenerRegistration? = null
 
@@ -28,16 +28,19 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+        return inflater.inflate(R.layout.fragment_my_places, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("!!!", "onViewCreated called in HiddenGemsFragment")
-        recyclerView = view.findViewById(R.id.recyclerViewGemList)
+        recyclerView = view.findViewById(R.id.recyclerViewMyPlacesList)
         recyclerView.layoutManager = LinearLayoutManager(context)
-        hiddenGemsAdapter = HiddenGemsAdapter(emptyList(), this)
-        recyclerView.adapter = hiddenGemsAdapter
+        myPlacesAdapter = MyPlacesAdapter(emptyList(), this)
+        recyclerView.adapter = myPlacesAdapter
+
+        val verticalSpaceHeight = resources.getDimensionPixelSize(R.dimen.recycler_view_item_spacing)
+        recyclerView.addItemDecoration(RecycleviewItemVerticalSpacing(verticalSpaceHeight))
 
         val backArrow = view.findViewById<ImageView>(R.id.backArrow)
         backArrow.setOnClickListener {
@@ -48,7 +51,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
         fabAddHiddenGem.setOnClickListener {
             val userId = getCurrentUserId()
             if (userId != null) {
-                showAddHiddenGemDialog(userId)
+                showAddMyPlacesDialog(userId)
             } else {
 
             }
@@ -84,15 +87,15 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
                 }
 
                 val hiddenGemsList = snapshots?.mapNotNull { document ->
-                    val hiddenGem = document.toObject(HiddenGem::class.java)
+                    val myPlace = document.toObject(MyPlace::class.java)
                     Log.d(
                         "!!!",
-                        "Hidden Gem: name='${hiddenGem.name}', tag='${hiddenGem.tag}'"
+                        "Hidden Gem: name='${myPlace.name}', tag='${myPlace.tag}'"
                     )
-                    if (hiddenGem.name.isNullOrEmpty() || hiddenGem.tag.isNullOrEmpty()) {
+                    if (myPlace.name.isNullOrEmpty() || myPlace.tag.isNullOrEmpty()) {
                         Log.w("!!!", "Hidden Gem has null or empty name/tag")
                     }
-                    hiddenGem
+                    myPlace
                 } ?: emptyList()
                 Log.d("!!!", "Fetched Hidden Gems: $hiddenGemsList (HiddenGemsFragment)")
 
@@ -106,7 +109,7 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
             .get()
             .addOnSuccessListener { documents ->
                 val hiddenGemsList = documents.mapNotNull { document ->
-                    document.toObject(HiddenGem::class.java)
+                    document.toObject(MyPlace::class.java)
                 }
                 updateRecyclerView(hiddenGemsList)
             }
@@ -115,30 +118,14 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
             }
     }
 
-    private fun updateRecyclerView(hiddenGemsList: List<HiddenGem>) {
-        val sectionItems = createSectionList(hiddenGemsList)
-        Log.d("section", "Updating RecyclerView with items: $sectionItems")
-        hiddenGemsAdapter.items = sectionItems
-        hiddenGemsAdapter.notifyDataSetChanged()
+    private fun updateRecyclerView(myPlaceList: List<MyPlace>) {
+        Log.d("update", "Updating RecyclerView with items: $myPlaceList")
+        myPlacesAdapter.updateItems(myPlaceList)
     }
 
 
-    private fun createSectionList(hiddenGems: List<HiddenGem>): List<SectionItem> {
-        val sectionList = mutableListOf<SectionItem>()
-        val hiddenGemsByCategory = hiddenGems.groupBy { it.tag }
-
-        hiddenGemsByCategory.forEach { (category, gems) ->
-            sectionList.add(SectionItem.Header(category))
-            gems.forEach { gem ->
-                sectionList.add(SectionItem.Item(gem))
-            }
-        }
-        return sectionList
-    }
-
-
-    private fun showAddHiddenGemDialog(userId: String) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
+    private fun showAddMyPlacesDialog(userId: String) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_my_places, null)
 
         val builder = context?.let { AlertDialog.Builder(it, R.style.CustomAlertDialog) }
         builder?.apply {
@@ -151,8 +138,8 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
 
                     if (name.isNotEmpty() && category.isNotEmpty() && tagsInput.isNotEmpty()) {
                         val tagsList = tagsInput.split(",").map { it.trim() }
-                        val newHiddenGem = HiddenGem(name = name, tag = category, tags = tagsList, userId = userId)
-                        addNewHiddenGemToFirestore(newHiddenGem, userId) // Skicka userId som parameter
+                        val newMyPlace = MyPlace(name = name, tag = category, tags = tagsList, userId = userId)
+                        addNewMyPlacesToFirestore(newMyPlace, userId) // Skicka userId som parameter
                     } else {
                         CustomToast.showCustomToast(context, "All fields are required, including least one tag", Toast.LENGTH_LONG)
                     }
@@ -165,12 +152,12 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-    private fun addNewHiddenGemToFirestore(newHiddenGem: HiddenGem, userId: String) {
+    private fun addNewMyPlacesToFirestore(newMyPlace: MyPlace, userId: String) {
         val firestore = FirebaseFirestore.getInstance()
         val hiddenGemsCollection = firestore.collection("hidden_gems")
 
         val newDocumentRef = hiddenGemsCollection.document()
-        val updatedHiddenGem = newHiddenGem.copy(id = newDocumentRef.id, userId = userId)
+        val updatedHiddenGem = newMyPlace.copy(id = newDocumentRef.id, userId = userId)
 
         newDocumentRef.set(updatedHiddenGem)
             .addOnSuccessListener {
@@ -183,38 +170,38 @@ class HiddenGemsFragment : Fragment(), OnHiddenGemClickListener {
     }
 
 
-    override fun onHiddenGemClicked(hiddenGem: HiddenGem) {
-        Log.d("detail", "Hidden Gem clicked: ${hiddenGem.name}")
-        val detailFragment = HiddenGemDetailFragment.newInstance(hiddenGem)
+    override fun onMyPlacesClicked(myPlace: MyPlace) {
+        Log.d("detail", "Hidden Gem clicked: ${myPlace.name}")
+        val detailFragment = MyPlacesDetailFragment.newInstance(myPlace)
         activity?.supportFragmentManager?.beginTransaction()
             ?.replace(R.id.hidden_gem_fragment_container, detailFragment)
             ?.addToBackStack(null)
             ?.commit()
     }
 
-    override fun onRemoveIconClicked(hiddenGem: HiddenGem) {
-        showDeleteDialog(hiddenGem)
+    override fun onRemoveIconClicked(myPlace: MyPlace) {
+        showDeleteDialog(myPlace)
     }
 
-    private fun showDeleteDialog(hiddenGem: HiddenGem) {
+    private fun showDeleteDialog(myPlace: MyPlace) {
         AlertDialog.Builder(requireActivity())
             .setTitle("Delete List")
-            .setMessage("Are you sure you want to delete your hidden gem '${hiddenGem.name}'?")
+            .setMessage("Are you sure you want to delete your hidden gem '${myPlace.name}'?")
             .setPositiveButton("Delete") { dialog, which ->
-                deleteHiddenGem(hiddenGem)
+                deleteHiddenGem(myPlace)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun deleteHiddenGem(hiddenGem: HiddenGem) {
+    private fun deleteHiddenGem(myPlace: MyPlace) {
         val firestore = FirebaseFirestore.getInstance()
         val hiddenGemsCollection = firestore.collection("hidden_gems")
 
-        hiddenGemsCollection.document(hiddenGem.id)
+        hiddenGemsCollection.document(myPlace.id)
             .delete()
             .addOnSuccessListener {
-                Log.d("!!!", "Hidden Gem deleted with ID: ${hiddenGem.id}")
+                Log.d("!!!", "Hidden Gem deleted with ID: ${myPlace.id}")
                 updateHiddenGemsData()
             }
             .addOnFailureListener { e ->

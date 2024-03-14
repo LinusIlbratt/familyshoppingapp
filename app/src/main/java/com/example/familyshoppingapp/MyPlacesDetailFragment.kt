@@ -45,8 +45,8 @@ import java.util.Locale
 import java.util.UUID
 
 
-class HiddenGemDetailFragment : Fragment() {
-    private lateinit var hiddenGem: HiddenGem
+class MyPlacesDetailFragment : Fragment() {
+    private lateinit var myPlace: MyPlace
     private lateinit var descriptionEditText: EditText
     private lateinit var editButton: Button
     private lateinit var saveButton: Button
@@ -68,7 +68,7 @@ class HiddenGemDetailFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            hiddenGem = it.getParcelable(HIDDEN_GEM)
+            myPlace = it.getParcelable(HIDDEN_GEM)
                 ?: throw IllegalArgumentException("Hidden Gem is required")
         }
     }
@@ -86,7 +86,7 @@ class HiddenGemDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         Log.d("detail", "onCreateView called")
-        return inflater.inflate(R.layout.fragment_hidden_gem_detail, container, false)
+        return inflater.inflate(R.layout.fragment_my_places_details, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,9 +95,9 @@ class HiddenGemDetailFragment : Fragment() {
 
         initViews(view)
         setupListeners()
-        loadAndSetHiddenGemSharingStatus()
+        loadAndSetMyPlacesSharingStatus()
 
-        hiddenGem.imageUrl?.let {
+        myPlace.imageUrl?.let {
             uploadImageIntoPhotoHolder(it)
         }
 
@@ -129,9 +129,9 @@ class HiddenGemDetailFragment : Fragment() {
 
     private fun initViews(view: View) {
 
-        photoHolder = view.findViewById(R.id.hidden_gem_detail_photoHolder)
+        photoHolder = view.findViewById(R.id.my_places_detail_photoHolder)
 
-        view.findViewById<TextView>(R.id.detail_title).text = hiddenGem.name
+        view.findViewById<TextView>(R.id.detail_title).text = myPlace.name
 
         saveGpsButton = view.findViewById(R.id.btn_save_gps)
         showGpsButton = view.findViewById(R.id.btn_show_gps)
@@ -142,7 +142,7 @@ class HiddenGemDetailFragment : Fragment() {
         editButton = view.findViewById(R.id.btn_edit_desc)
         saveButton = view.findViewById(R.id.btn_save_desc)
 
-        descriptionEditText.setText(hiddenGem.description)
+        descriptionEditText.setText(myPlace.description)
         descriptionEditText.background = null
         descriptionEditText.isFocusable = false
         descriptionEditText.isFocusableInTouchMode = false
@@ -170,8 +170,7 @@ class HiddenGemDetailFragment : Fragment() {
             editButton.visibility = View.GONE
             view?.findViewById<TextView>(R.id.detail_title)?.visibility = View.INVISIBLE
 
-            descriptionEditText.background =
-                ResourcesCompat.getDrawable(resources, R.drawable.edit_text_background, null)
+            descriptionEditText.background = ResourcesCompat.getDrawable(resources, R.drawable.edit_text_background, null)
             descriptionEditText.isFocusable = true
             descriptionEditText.isFocusableInTouchMode = true
             descriptionEditText.isCursorVisible = true
@@ -186,8 +185,8 @@ class HiddenGemDetailFragment : Fragment() {
         }
 
         saveButton.setOnClickListener {
-            hiddenGem.description = descriptionEditText.text.toString()
-            saveHiddenGem(hiddenGem, "Description updated successfully", "description")
+            myPlace.description = descriptionEditText.text.toString()
+            saveHiddenGem(myPlace, "Description updated successfully", "description")
 
             saveGpsButton.visibility = View.VISIBLE
             showGpsButton.visibility = View.VISIBLE
@@ -225,18 +224,18 @@ class HiddenGemDetailFragment : Fragment() {
         }
     }
 
-    private fun loadAndSetHiddenGemSharingStatus() {
+    private fun loadAndSetMyPlacesSharingStatus() {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("hidden_gems").document(hiddenGem.id)
+            firestore.collection("hidden_gems").document(myPlace.id)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val updatedHiddenGem = document.toObject(HiddenGem::class.java)
-                    updatedHiddenGem?.let {
+                    val updatedMyPlace = document.toObject(MyPlace::class.java)
+                    updatedMyPlace?.let {
                         it.isShared = document.getBoolean("isShared") ?: false
-                        this.hiddenGem = it
+                        this.myPlace = it
                         // updateButtonsBasedOnSharingStatus(hiddenGem.isShared)
-                        Log.d("HiddenGemDetailFragment", "Loaded HiddenGem isShared status: ${hiddenGem.isShared}")
+                        Log.d("HiddenGemDetailFragment", "Loaded HiddenGem isShared status: ${myPlace.isShared}")
                     }
                 }
             }
@@ -311,7 +310,7 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun uploadImageToFirestore(imageUri: Uri) {
-        val existingImageUrl = hiddenGem.imageUrl
+        val existingImageUrl = myPlace.imageUrl
         if (!existingImageUrl.isNullOrEmpty()) {
             val oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(existingImageUrl)
             oldImageRef.delete().addOnSuccessListener {
@@ -342,14 +341,14 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun updateHiddenGemImageInFirestore(imageUri: String) {
-        val hiddenGemId = hiddenGem.id
+        val hiddenGemId = myPlace.id
 
         val firestoreRef = FirebaseFirestore.getInstance()
             .collection("hidden_gems")
             .document(hiddenGemId)
 
         firestoreRef.update("imageUrl", imageUri).addOnSuccessListener {
-            hiddenGem.imageUrl = imageUri
+            myPlace.imageUrl = imageUri
             uploadImageIntoPhotoHolder(imageUri)
             Toast.makeText(context, "Image updated successfully", Toast.LENGTH_SHORT).show()
         }.addOnFailureListener {
@@ -419,10 +418,10 @@ class HiddenGemDetailFragment : Fragment() {
                     Log.d("!!!", "Location received: Accuracy = ${location?.accuracy}, Time diff = ${System.currentTimeMillis() - location.time}")
                 }
                 if (location != null && location.accuracy < ACCURACYLIMIT && System.currentTimeMillis() - location.time < TIMELIMIT) {
-                    hiddenGem.latitude = location.latitude
-                    hiddenGem.longitude = location.longitude
+                    myPlace.latitude = location.latitude
+                    myPlace.longitude = location.longitude
                     Log.d("!!!", "getting into saveHiddenGemGeneralData")
-                    saveHiddenGem(hiddenGem, "GPS position updated successfully", "description")
+                    saveHiddenGem(myPlace, "GPS position updated successfully", "description")
 
                     fusedLocationProviderClient.removeLocationUpdates(this)
                 }
@@ -444,8 +443,8 @@ class HiddenGemDetailFragment : Fragment() {
         }
     }
 
-    private fun saveHiddenGem(hiddenGem: HiddenGem, successMessage: String, errorMessage: String) {
-        if (hiddenGem.id.isEmpty()) {
+    private fun saveHiddenGem(myPlace: MyPlace, successMessage: String, errorMessage: String) {
+        if (myPlace.id.isEmpty()) {
             Log.w("HiddenGemDetailFragment", "Hidden Gem ID is empty")
             Toast.makeText(context, "Error: Hidden Gem ID is missing", Toast.LENGTH_SHORT).show()
             return
@@ -454,7 +453,7 @@ class HiddenGemDetailFragment : Fragment() {
         val firestore = FirebaseFirestore.getInstance()
         val hiddenGemsCollection = firestore.collection("hidden_gems")
 
-        hiddenGemsCollection.document(hiddenGem.id).set(hiddenGem)
+        hiddenGemsCollection.document(myPlace.id).set(myPlace)
             .addOnSuccessListener {
                 Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
             }
@@ -466,7 +465,7 @@ class HiddenGemDetailFragment : Fragment() {
     private fun showDirectionsInGoogleMap() {
         getCurrentLocation { location ->
             location?.let { currentLocation ->
-                val destination = LatLng(hiddenGem.latitude, hiddenGem.longitude)
+                val destination = LatLng(myPlace.latitude, myPlace.longitude)
 
                 val intentUri = Uri.parse(
                     "https://www.google.com/maps/dir/?api=1&origin=" +
@@ -514,10 +513,10 @@ class HiddenGemDetailFragment : Fragment() {
 
 
     private fun toggleHiddenGemSharing(shouldBeShared: Boolean) {
-        hiddenGem.isShared = shouldBeShared
+        myPlace.isShared = shouldBeShared
 
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("hidden_gems").document(hiddenGem.id)
+        firestore.collection("hidden_gems").document(myPlace.id)
             .update("isShared", shouldBeShared)
             .addOnSuccessListener {
 //                updateButtonsBasedOnSharingStatus(shouldBeShared)
@@ -546,11 +545,11 @@ class HiddenGemDetailFragment : Fragment() {
         const val LOCATION_PERMISSION_REQUEST_CODE = 1
         const val CAMERA_REQUEST_CODE = 101
 
-        fun newInstance(hiddenGem: HiddenGem, isEditable: Boolean = true): HiddenGemDetailFragment {
+        fun newInstance(myPlace: MyPlace, isEditable: Boolean = true): MyPlacesDetailFragment {
             val args = Bundle().apply {
-                putParcelable(HIDDEN_GEM, hiddenGem)
+                putParcelable(HIDDEN_GEM, myPlace)
             }
-            return HiddenGemDetailFragment().apply {
+            return MyPlacesDetailFragment().apply {
                 arguments = args
             }
         }

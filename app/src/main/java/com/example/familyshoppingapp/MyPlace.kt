@@ -3,7 +3,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class HiddenGem(
+data class MyPlace(
     val id: String = "",
     val name: String = "",
     var userId: String? = null,

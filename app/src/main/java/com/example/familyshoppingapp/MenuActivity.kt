@@ -235,7 +235,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
 
         findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.VISIBLE
 
-        val hiddenGemsFragment = HiddenGemsFragment()
+        val hiddenGemsFragment = MyPlacesFragment()
         supportFragmentManager.beginTransaction()
             .replace(R.id.hidden_gem_fragment_container, hiddenGemsFragment)
             .addToBackStack(null)
@@ -277,7 +277,7 @@ class MenuActivity : AppCompatActivity(), ShoppingListFragment.OnListSelectedLis
         findViewById<FrameLayout>(R.id.search_gem_fragment_container).visibility = View.VISIBLE
         findViewById<FrameLayout>(R.id.hidden_gem_fragment_container).visibility = View.GONE
 
-        val searchHiddenGemsFragment = SearchHiddenGemsFragment()
+        val searchHiddenGemsFragment = MyDiscoveriesFragment()
         supportFragmentManager.beginTransaction()
             .replace(R.id.search_gem_fragment_container, searchHiddenGemsFragment)
             .addToBackStack(null)
