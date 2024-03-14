@@ -25,7 +25,7 @@ class MyDiscoveriesAdapter(private var hiddenGems: List<HiddenGem>, private val 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.search_hidden_gem_items, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.my_discoveries_items, parent, false)
         return ViewHolder(view, onItemClicked)
     }
 

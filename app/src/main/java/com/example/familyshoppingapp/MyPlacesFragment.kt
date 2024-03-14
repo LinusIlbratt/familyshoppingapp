@@ -28,7 +28,7 @@ class MyPlacesFragment : Fragment(), OnHiddenGemClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_hidden_gems, container, false)
+        return inflater.inflate(R.layout.fragment_my_places, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -138,7 +138,7 @@ class MyPlacesFragment : Fragment(), OnHiddenGemClickListener {
 
 
     private fun showAddHiddenGemDialog(userId: String) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_hidden_gem, null)
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add_my_places, null)
 
         val builder = context?.let { AlertDialog.Builder(it, R.style.CustomAlertDialog) }
         builder?.apply {

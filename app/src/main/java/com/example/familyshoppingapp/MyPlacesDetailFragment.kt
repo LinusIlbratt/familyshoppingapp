@@ -86,7 +86,7 @@ class MyPlacesDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         Log.d("detail", "onCreateView called")
-        return inflater.inflate(R.layout.fragment_hidden_gem_detail, container, false)
+        return inflater.inflate(R.layout.fragment_my_places_details, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
